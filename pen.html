@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroCode</title>
+
+    <!-- CodeMirror 5 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/neat.min.css">
+
+    <style>
+        :root {
+            --glass-border: 1px solid rgba(255, 255, 255, 0.6);
+            --bg-grad: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            --sidebar-bg: rgba(255, 255, 255, 0.35);
+            --header-height: 28px;
+            --gap: 8px;
+            --radius: 10px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0; height: 100vh; display: flex; overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at 10% 10%, rgba(255,255,255,0.8) 0%, transparent 40%),
+                var(--bg-grad);
+            background-size: cover;
+        }
+
+        /* --- Global Overlays --- */
+        #drag-overlay {
+            position: fixed; inset: 0; z-index: 9999; display: none;
+        }
+
+        /* --- Sidebar Strip (Collapsed Mode - blue to indicate editor) --- */
+        .sidebar-strip {
+            width: 16px; height: 100vh;
+            background: rgba(0, 120, 215, 0.6);
+            border-right: 1px solid rgba(0, 120, 215, 0.8);
+            cursor: col-resize; display: none; z-index: 100;
+            backdrop-filter: blur(10px);
+            transition: background 0.2s;
+        }
+        .sidebar-strip:hover { background: rgba(0, 120, 215, 0.8); }
+
+        /* --- Preview Strip (When sidebar is fully extended) --- */
+        .preview-strip {
+            width: 16px; height: 100vh;
+            background: rgba(0, 120, 215, 0.6);
+            border-left: 1px solid rgba(0, 120, 215, 0.8);
+            cursor: col-resize; display: none; z-index: 100;
+            backdrop-filter: blur(10px);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        .preview-strip:hover { background: rgba(0, 120, 215, 0.8); }
+
+        /* --- Main Sidebar --- */
+        .sidebar {
+            display: flex; flex-direction: column;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-right: var(--glass-border);
+            padding: var(--gap);
+            gap: 0;
+            z-index: 10;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .sidebar-resizer {
+            position: absolute; top: 0; bottom: 0; right: -4px; width: 10px;
+            cursor: col-resize; z-index: 50;
+        }
+
+        /* --- Editor Boxes --- */
+        .editor-box {
+            position: absolute; left: var(--gap); right: var(--gap);
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid rgba(255,255,255,0.9);
+            border-radius: var(--radius);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            display: flex; flex-direction: column;
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+
+        .editor-header {
+            height: var(--header-height);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 8px;
+            background: linear-gradient(to bottom, #fff 0%, #f1f1f1 100%);
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+            user-select: none;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .label {
+            font-size: 11px; font-weight: 700; color: #666;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            text-shadow: 0 1px 0 #fff;
+        }
+
+        /* --- Fullscreen Styles --- */
+        .sidebar.fullscreen-mode .editor-box { display: none; }
+
+        .sidebar.fullscreen-mode .editor-box.fs-active {
+            display: flex;
+            position: absolute; top: var(--gap) !important; bottom: var(--gap) !important;
+            height: auto !important; z-index: 100;
+        }
+
+        .fullscreen-mode .label { display: none; }
+
+        /* Tabs */
+        .fs-nav { display: none; align-items: center; gap: 4px; }
+        .fullscreen-mode .fs-nav { display: flex; }
+
+        .fs-tag {
+            font-size: 10px; font-weight: bold;
+            background: rgba(0,0,0,0.05); padding: 3px 8px; border-radius: 12px; color: #666;
+            cursor: pointer; transition: all 0.1s;
+        }
+        .fs-tag:hover { background: rgba(0,0,0,0.1); color: #333; }
+        .fs-tag.active { background: #0078d7; color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+
+        /* --- Controls --- */
+        .controls { display: flex; gap: 6px; align-items: center; }
+
+        .traffic-btn {
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; border: 1px solid rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .traffic-btn svg { width: 8px; height: 8px; opacity: 0; transition: opacity 0.2s; }
+        .traffic-btn:hover svg { opacity: 0.6; }
+        .traffic-btn path { stroke: #000; stroke-width: 1.5; stroke-linecap: round; }
+
+        .btn-yellow { background: #ffbd2e; border-color: #d6a12d; }
+        .btn-green  { background: #27c93f; border-color: #21a132; }
+        .btn-red    { background: #ff5f57; border-color: #e0443e; }
+
+        /* --- Content --- */
+        .editor-content {
+            flex-grow: 1; position: relative; overflow: hidden;
+            background: rgba(255,255,255,0.5);
+        }
+
+        /* CodeMirror */
+        .CodeMirror {
+            position: absolute; inset: 0; height: 100% !important;
+            background: transparent !important;
+            font-family: 'Menlo', 'Consolas', monospace;
+            font-size: 12px; line-height: 1.4;
+        }
+        .CodeMirror-gutters { background: rgba(245, 245, 245, 0.95) !important; border-right: 1px solid rgba(0,0,0,0.06) !important; }
+
+        /* --- Preview --- */
+        .preview { flex-grow: 1; flex-shrink: 1; min-width: 0; background: white; position: relative; overflow: hidden; }
+        iframe { width: 100%; height: 100%; border: none; }
+        .hidden { display: none !important; }
+
+    </style>
+</head>
+<body>
+
+    <div id="drag-overlay"></div>
+    <div id="sidebar-strip" class="sidebar-strip"></div>
+
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-resizer" id="sidebar-resizer"></div>
+
+        <!-- HTML Box -->
+        <div class="editor-box" id="box-html">
+            <div class="editor-header" id="header-html">
+                <div style="display:flex; align-items:center">
+                    <span class="label">HTML</span>
+                    <div class="fs-nav">
+                        <span class="fs-tag active">HTML</span>
+                        <span class="fs-tag" onclick="app.switchFs('css')">CSS</span>
+                        <span class="fs-tag" onclick="app.switchFs('js')">JS</span>
+                    </div>
+                </div>
+                <div class="controls">
+                    <div class="traffic-btn btn-yellow" onclick="app.toggleMin('html')"><svg viewBox="0 0 10 10"><path d="M2,5 L8,5" /></svg></div>
+                    <div class="traffic-btn btn-green" onclick="app.toggleFs('html')"><svg viewBox="0 0 10 10"><path d="M5,2 L5,8 M2,5 L8,5" /></svg></div>
+                    <div class="traffic-btn btn-red" style="display:none" onclick="app.toggleFs('html')"><svg viewBox="0 0 10 10"><path d="M2,2 L8,8 M8,2 L2,8" /></svg></div>
+                </div>
+            </div>
+            <div class="editor-content"><textarea id="code-html"></textarea></div>
+        </div>
+
+        <!-- CSS Box -->
+        <div class="editor-box" id="box-css">
+            <div class="editor-header" id="header-css">
+                <div style="display:flex; align-items:center">
+                    <span class="label">CSS</span>
+                    <div class="fs-nav">
+                        <span class="fs-tag" onclick="app.switchFs('html')">HTML</span>
+                        <span class="fs-tag active">CSS</span>
+                        <span class="fs-tag" onclick="app.switchFs('js')">JS</span>
+                    </div>
+                </div>
+                <div class="controls">
+                    <div class="traffic-btn btn-yellow" onclick="app.toggleMin('css')"><svg viewBox="0 0 10 10"><path d="M2,5 L8,5" /></svg></div>
+                    <div class="traffic-btn btn-green" onclick="app.toggleFs('css')"><svg viewBox="0 0 10 10"><path d="M5,2 L5,8 M2,5 L8,5" /></svg></div>
+                    <div class="traffic-btn btn-red" style="display:none" onclick="app.toggleFs('css')"><svg viewBox="0 0 10 10"><path d="M2,2 L8,8 M8,2 L2,8" /></svg></div>
+                </div>
+            </div>
+            <div class="editor-content"><textarea id="code-css"></textarea></div>
+        </div>
+
+        <!-- JS Box -->
+        <div class="editor-box" id="box-js">
+            <div class="editor-header" id="header-js">
+                <div style="display:flex; align-items:center">
+                    <span class="label">JS</span>
+                    <div class="fs-nav">
+                        <span class="fs-tag" onclick="app.switchFs('html')">HTML</span>
+                        <span class="fs-tag" onclick="app.switchFs('css')">CSS</span>
+                        <span class="fs-tag active">JS</span>
+                    </div>
+                </div>
+                <div class="controls">
+                    <div class="traffic-btn btn-yellow" onclick="app.toggleMin('js')"><svg viewBox="0 0 10 10"><path d="M2,5 L8,5" /></svg></div>
+                    <div class="traffic-btn btn-green" onclick="app.toggleFs('js')"><svg viewBox="0 0 10 10"><path d="M5,2 L5,8 M2,5 L8,5" /></svg></div>
+                    <div class="traffic-btn btn-red" style="display:none" onclick="app.toggleFs('js')"><svg viewBox="0 0 10 10"><path d="M2,2 L8,8 M8,2 L2,8" /></svg></div>
+                </div>
+            </div>
+            <div class="editor-content"><textarea id="code-js"></textarea></div>
+        </div>
+
+    </div>
+
+    <div id="preview-strip" class="preview-strip"></div>
+    <div class="preview">
+        <iframe id="preview-frame"></iframe>
+    </div>
+
+    <!-- Logic -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/keymap/vim.min.js"></script>
+
+    <script>
+        const DEFAULTS = {
+            html: `<div class="wrapper">
+  <button class="gel-btn">Download</button>
+</div>`,
+            css: `body {
+  height: 100vh; margin: 0;
+  display: flex; justify-content: center; align-items: center;
+  /* Simple Grid Background */
+  background-image:
+    linear-gradient(#eee 1px, transparent 1px),
+    linear-gradient(90deg, #eee 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-color: #fafafa;
+}
+
+.gel-btn {
+  position: relative;
+  font-family: -apple-system, sans-serif;
+  font-weight: 600; font-size: 14px;
+  color: #fff; text-shadow: 0 -1px 0 rgba(0,0,0,0.2);
+  padding: 8px 30px;
+  border: 1px solid #2e6da4; border-radius: 100px;
+  background: linear-gradient(to bottom, #7bbaf7 0%, #4096ee 100%);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.4);
+  cursor: pointer;
+}
+
+.gel-btn:hover { filter: brightness(1.05); }`,
+            js: `document.querySelector('.gel-btn').addEventListener('click', () => {
+  alert('Frutiger Aero: 2004 - Forever');
+});`
+        };
+
+        const MIN_H = 28; // Header height
+        const GAP = 8;
+        const SNAP_THRESHOLD = 60; // Pixel height to snap to close/open
+
+        const app = {
+            state: {
+                sidebarWidth: 350,
+                prevSidebarWidth: 350, // To restore after uncollapsing
+                collapsed: false,
+                fullscreen: null, // 'html', 'css', 'js' or null
+
+                // Visual Y coordinates relative to sidebar content area
+                // split1 = Bottom of HTML
+                // split2 = Bottom of CSS
+                split1: 200,
+                split2: 400,
+
+                minimized: { html: false, css: false, js: false },
+
+                // To restore size after un-minimizing
+                prevSize: { html: 200, css: 200, js: 200 }
+            },
+
+            cms: {},
+
+            init() {
+                this.dom = {
+                    sidebar: document.getElementById('sidebar'),
+                    strip: document.getElementById('sidebar-strip'),
+                    previewStrip: document.getElementById('preview-strip'),
+                    overlay: document.getElementById('drag-overlay'),
+                    preview: document.getElementById('preview-frame'),
+                    resizer: document.getElementById('sidebar-resizer'),
+                    boxes: {
+                        html: document.getElementById('box-html'),
+                        css: document.getElementById('box-css'),
+                        js: document.getElementById('box-js')
+                    }
+                };
+
+                // Init CodeMirror
+                const modes = { html: 'htmlmixed', css: 'css', js: 'javascript' };
+                ['html', 'css', 'js'].forEach(lang => {
+                    document.getElementById(`code-${lang}`).value = DEFAULTS[lang];
+                    const cm = CodeMirror.fromTextArea(document.getElementById(`code-${lang}`), {
+                        mode: modes[lang],
+                        theme: 'neat', lineNumbers: true, scrollbarStyle: 'native', keyMap: 'vim'
+                    });
+                    cm.on('change', () => this.updatePreview());
+                    this.cms[lang] = cm;
+                });
+
+                this.bindEvents();
+                this.updatePreview();
+                this.render();
+            },
+
+            // --- Rendering Logic ---
+            render() {
+                const s = this.state;
+                const maxW = window.innerWidth;
+
+                // 1. Sidebar Mode
+                if (s.collapsed) {
+                    this.dom.sidebar.classList.add('hidden');
+                    this.dom.strip.style.display = 'block';
+                    this.dom.previewStrip.style.display = 'none';
+                    return;
+                }
+                this.dom.sidebar.classList.remove('hidden');
+                this.dom.strip.style.display = 'none';
+                this.dom.sidebar.style.width = `${s.sidebarWidth}px`;
+                
+                // Show preview strip when sidebar is fully extended (preview hidden)
+                const STRIP_W = 16;
+                if (s.sidebarWidth >= maxW - STRIP_W - 10) {
+                    this.dom.previewStrip.style.display = 'block';
+                } else {
+                    this.dom.previewStrip.style.display = 'none';
+                }
+
+                // 2. Fullscreen Mode
+                if (s.fullscreen) {
+                    this.dom.sidebar.classList.add('fullscreen-mode');
+                    ['html', 'css', 'js'].forEach(k => {
+                        const box = this.dom.boxes[k];
+                        if (k === s.fullscreen) {
+                            box.classList.add('fs-active');
+                            box.querySelector('.btn-red').style.display = 'flex';
+                            box.querySelector('.btn-green').style.display = 'none';
+                            box.querySelector('.btn-yellow').style.display = 'none';
+                        } else {
+                            box.classList.remove('fs-active');
+                        }
+                    });
+                } else {
+                    this.dom.sidebar.classList.remove('fullscreen-mode');
+
+                    // 3. Normal Split Mode
+                    // HTML (starts at GAP from top)
+                    const h1 = s.minimized.html ? MIN_H : s.split1;
+                    this.positionBox('html', GAP, h1);
+
+                    // CSS
+                    const cssTop = GAP + h1 + GAP;
+                    const cssH = s.minimized.css ? MIN_H : (s.split2 - s.split1 - GAP);
+                    this.positionBox('css', cssTop, cssH);
+
+                    // JS (ends at GAP from bottom)
+                    const jsTop = cssTop + cssH + GAP;
+                    // If JS is minimized, it has fixed height. If open, it fills rest.
+                    if (s.minimized.js) {
+                        this.positionBox('js', jsTop, MIN_H);
+                    } else {
+                        this.positionBox('js', jsTop, null, GAP); // Fill rest with bottom padding
+                    }
+
+                    // Reset Controls
+                    ['html', 'css', 'js'].forEach(k => {
+                        const box = this.dom.boxes[k];
+                        box.classList.remove('fs-active');
+                        box.querySelector('.btn-red').style.display = 'none';
+                        box.querySelector('.btn-green').style.display = 'flex';
+                        box.querySelector('.btn-yellow').style.display = 'flex';
+
+                        // Cursors: HTML is click-only, CSS/JS are draggable
+                        const header = document.getElementById(`header-${k}`);
+                        if (k === 'html') header.style.cursor = 'pointer';
+                        else header.style.cursor = 'row-resize';
+                    });
+                }
+
+                requestAnimationFrame(() => Object.values(this.cms).forEach(cm => cm.refresh()));
+            },
+
+            positionBox(id, top, height, bottom = 0) {
+                const el = this.dom.boxes[id];
+                el.style.top = `${top}px`;
+                if (height === null) {
+                    el.style.bottom = `${bottom}px`;
+                    el.style.height = 'auto';
+                } else {
+                    el.style.bottom = 'auto';
+                    el.style.height = `${height}px`;
+                }
+            },
+
+            // --- Actions ---
+            toggleMin(id) {
+                const s = this.state;
+                // Usable height excludes top and bottom padding
+                const usableH = this.dom.sidebar.clientHeight - 2 * GAP;
+
+                if (!s.minimized[id]) {
+                    // Currently open -> Minimize it
+                    s.minimized[id] = true;
+
+                    if (id === 'html') {
+                        s.prevSize.html = s.split1;
+                        s.split1 = MIN_H;
+                        // Push CSS up if it's minimized
+                        if (s.minimized.css) s.split2 = s.split1 + GAP + MIN_H;
+                    }
+                    else if (id === 'css') {
+                        s.prevSize.css = s.split2 - s.split1 - GAP;
+                        s.split2 = s.split1 + GAP + MIN_H;
+                    }
+                    else if (id === 'js') {
+                        // Save JS height before minimizing
+                        const jsTop = s.split2 + GAP;
+                        s.prevSize.js = usableH - jsTop;
+                    }
+                } else {
+                    // Currently minimized -> Restore it
+                    s.minimized[id] = false;
+
+                    // Check if all three were minimized before this click
+                    const allOthersMinimized = (id === 'html' && s.minimized.css && s.minimized.js) ||
+                                               (id === 'css' && s.minimized.html && s.minimized.js) ||
+                                               (id === 'js' && s.minimized.html && s.minimized.css);
+
+                    if (allOthersMinimized) {
+                        // Expand clicked panel to fill all available space
+                        if (id === 'html') {
+                            // HTML expands, CSS and JS stay minimized at bottom
+                            s.split1 = usableH - GAP - MIN_H - GAP - MIN_H;
+                            s.split2 = s.split1 + GAP + MIN_H;
+                        }
+                        else if (id === 'css') {
+                            // HTML minimized at top, CSS expands, JS minimized at bottom
+                            s.split1 = MIN_H;
+                            s.split2 = usableH - GAP - MIN_H;
+                        }
+                        else if (id === 'js') {
+                            // HTML and CSS minimized at top, JS fills rest
+                            s.split1 = MIN_H;
+                            s.split2 = s.split1 + GAP + MIN_H;
+                        }
+                    } else {
+                        // Normal restore logic
+                        if (id === 'html') {
+                            s.split1 = Math.max(SNAP_THRESHOLD, s.prevSize.html);
+                            if (s.minimized.css) s.split2 = s.split1 + GAP + MIN_H;
+                        }
+                        else if (id === 'css') {
+                            s.split2 = s.split1 + GAP + Math.max(SNAP_THRESHOLD, s.prevSize.css);
+                        }
+                        else if (id === 'js') {
+                            // Restore JS: just un-minimize, keep split2 where it is
+                            // JS fills from current split2 to bottom - no header jump
+                        }
+                    }
+                }
+                this.render();
+            },
+
+            toggleFs(id) {
+                if (this.state.fullscreen === id) {
+                    this.state.fullscreen = null;
+                } else {
+                    this.state.fullscreen = id;
+                    this.state.minimized[id] = false;
+                }
+                this.render();
+            },
+
+            switchFs(id) {
+                if(this.state.fullscreen) {
+                    this.state.fullscreen = id;
+                    this.render();
+                }
+            },
+
+            // --- Drag Logic ---
+            bindEvents() {
+                // Sidebar Width - use mouse X position directly for accuracy
+                this.dom.resizer.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    const startWidth = this.state.sidebarWidth;
+                    this.dom.overlay.style.display = 'block';
+                    this.dom.overlay.style.cursor = 'col-resize';
+
+                    const onMove = (em) => {
+                        // Use mouse X position directly as the new width
+                        const newW = em.clientX;
+                        const maxW = window.innerWidth;
+                        
+                        if (newW < 50) {
+                            this.state.prevSidebarWidth = startWidth;
+                            this.state.collapsed = true;
+                            this.render();
+                            onUp();
+                            return;
+                        }
+                        
+                        // Snap to edge if within 30px (leave 16px for preview strip)
+                        const STRIP_W = 16;
+                        if (newW > maxW - 30) {
+                            // Save previous width before going full
+                            if (this.state.sidebarWidth < maxW - 30) {
+                                this.state.prevSidebarWidth = this.state.sidebarWidth;
+                            }
+                            this.state.sidebarWidth = maxW - STRIP_W;
+                        } else {
+                            this.state.sidebarWidth = Math.max(150, newW);
+                        }
+                        this.render();
+                    };
+
+                    const onUp = () => {
+                        window.removeEventListener('mousemove', onMove);
+                        window.removeEventListener('mouseup', onUp);
+                        this.dom.overlay.style.display = 'none';
+                    };
+
+                    window.addEventListener('mousemove', onMove);
+                    window.addEventListener('mouseup', onUp);
+                });
+
+                // Sidebar strip (when sidebar is collapsed) - draggable to resize
+                this.addStripDrag(this.dom.strip, () => {
+                    this.state.collapsed = false;
+                    this.state.sidebarWidth = this.state.prevSidebarWidth;
+                    this.render();
+                });
+
+                // Preview strip (when sidebar is fully extended) - draggable to resize
+                this.addStripDrag(this.dom.previewStrip, () => {
+                    this.state.sidebarWidth = this.state.prevSidebarWidth;
+                    this.render();
+                });
+
+                // Header Dragging
+                ['html', 'css', 'js'].forEach(lang => {
+                    const header = document.getElementById(`header-${lang}`);
+
+                    // Click to toggle (Generic handler)
+                    header.addEventListener('click', (e) => {
+                        if(e.target.closest('.controls') || e.target.closest('.fs-nav')) return;
+                    });
+
+                    // Drag Handler
+                    this.addSmartDrag(header, lang);
+                });
+            },
+
+            addSmartDrag(el, lang) {
+                let startY = 0;
+                let isDrag = false;
+
+                el.addEventListener('mousedown', (e) => {
+                    if (e.target.closest('.controls') || e.target.closest('.fs-nav')) return;
+                    e.preventDefault();
+
+                    // HTML header: click-only (no dragging since nothing above it)
+                    if (lang === 'html') {
+                        this.toggleMin('html');
+                        return;
+                    }
+
+                    startY = e.clientY;
+                    isDrag = false;
+
+                    const startS1 = this.state.split1;
+                    const startS2 = this.state.split2;
+                    // Usable height excludes top and bottom padding
+                    const usableH = this.dom.sidebar.clientHeight - 2 * GAP;
+
+                    const onMove = (em) => {
+                        const delta = em.clientY - startY;
+                        if (Math.abs(delta) > 3) isDrag = true;
+
+                        // Logic for moving boundaries
+                        if (lang === 'css') {
+                            // Moving split1 (HTML Bottom)
+                            let n1 = startS1 + delta;
+
+                            // Snap Logic HTML
+                            if (n1 < SNAP_THRESHOLD) {
+                                this.state.minimized.html = true;
+                                n1 = MIN_H;
+                            } else {
+                                this.state.minimized.html = false;
+                            }
+
+                            // Push CSS
+                            if (this.state.minimized.css) {
+                                // Clamp: ensure JS still has MIN_H visible
+                                // split2 will be n1 + GAP + MIN_H, JS needs MIN_H at bottom
+                                const maxN1 = usableH - GAP - MIN_H - GAP - MIN_H;
+                                n1 = Math.min(n1, maxN1);
+                                
+                                this.state.split1 = n1;
+                                this.state.split2 = n1 + GAP + MIN_H;
+                                
+                                // Snap logic for JS: if JS height falls below threshold, minimize it
+                                const jsTop = this.state.split2 + GAP;
+                                const jsH = usableH - jsTop;
+                                if (jsH < SNAP_THRESHOLD) {
+                                    this.state.minimized.js = true;
+                                }
+                            } else {
+                                // CSS Flexible
+                                if (startS2 - n1 - GAP < SNAP_THRESHOLD) {
+                                    // CSS getting squished -> Minimize CSS
+                                    this.state.minimized.css = true;
+                                    this.state.split1 = n1;
+                                    this.state.split2 = n1 + GAP + MIN_H;
+                                } else {
+                                    this.state.minimized.css = false;
+                                    this.state.split1 = n1;
+                                }
+                            }
+                        }
+                        else if (lang === 'js') {
+                            // Moving split2 (CSS Bottom)
+                            let n2 = startS2 + delta;
+
+                            // Clamp: JS must always have at least MIN_H visible (header)
+                            const maxSplit2 = usableH - GAP - MIN_H;
+                            n2 = Math.min(n2, maxSplit2);
+
+                            // Snap Logic for JS:
+                            // - Dragging UP (delta < 0) expands JS, can un-minimize it
+                            // - Dragging DOWN (delta > 0) shrinks JS, can minimize it
+                            const jsTop = n2 + GAP;
+                            const jsH = usableH - jsTop;
+
+                            // Snap logic for JS based on drag direction and current state
+                            if (!this.state.minimized.js) {
+                                // JS is open: can minimize it if dragged down past threshold
+                                if (jsH < SNAP_THRESHOLD) {
+                                    this.state.minimized.js = true;
+                                }
+                            }
+                            // When JS is minimized, dragging its header resizes CSS above,
+                            // but doesn't re-open JS. Use click or yellow button to restore.
+
+                            // Interaction with CSS (Above)
+                            if (this.state.minimized.css) {
+                                // CSS is currently minimized.
+                                // If we drag down (n2 increases), we want to OPEN CSS, not push HTML.
+                                const potentialCssH = n2 - this.state.split1 - GAP;
+
+                                if (potentialCssH > MIN_H) {
+                                    // Expanding CSS
+                                    this.state.split2 = n2;
+                                    if (potentialCssH > SNAP_THRESHOLD) {
+                                        this.state.minimized.css = false;
+                                    }
+                                } else {
+                                    // Compressing (Dragging Up) -> Push HTML
+                                    this.state.split2 = n2;
+                                    this.state.split1 = n2 - GAP - MIN_H;
+
+                                    // Push HTML
+                                    if (this.state.split1 < SNAP_THRESHOLD) {
+                                        this.state.minimized.html = true;
+                                        this.state.split1 = MIN_H;
+                                        this.state.split2 = this.state.split1 + GAP + MIN_H;
+                                    } else {
+                                        this.state.minimized.html = false;
+                                    }
+                                }
+                            } else {
+                                // CSS is Open. Standard Resize.
+                                if (n2 - this.state.split1 - GAP < SNAP_THRESHOLD) {
+                                    this.state.minimized.css = true;
+                                    this.state.split2 = n2;
+                                    this.state.split1 = n2 - GAP - MIN_H;
+                                } else {
+                                    this.state.minimized.css = false;
+                                    this.state.split2 = n2;
+                                }
+                            }
+                        }
+                        this.render();
+                    };
+
+                    const onUp = (eu) => {
+                        window.removeEventListener('mousemove', onMove);
+                        window.removeEventListener('mouseup', onUp);
+                        this.dom.overlay.style.display = 'none';
+                        document.body.style.cursor = '';
+
+                        // Click to Toggle
+                        if (!isDrag) {
+                            this.toggleMin(lang);
+                        }
+                    };
+
+                    this.dom.overlay.style.display = 'block';
+                    this.dom.overlay.style.cursor = 'row-resize';
+                    document.body.style.cursor = 'row-resize';
+                    window.addEventListener('mousemove', onMove);
+                    window.addEventListener('mouseup', onUp);
+                });
+            },
+
+            addStripDrag(stripEl, onClickRestore) {
+                let startX = 0;
+                let isDrag = false;
+
+                stripEl.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    startX = e.clientX;
+                    isDrag = false;
+                    // Capture current width at drag start (use prevSidebarWidth if collapsed)
+                    const startWidth = this.state.collapsed ? this.state.prevSidebarWidth : this.state.sidebarWidth;
+
+                    this.dom.overlay.style.display = 'block';
+                    this.dom.overlay.style.cursor = 'col-resize';
+
+                    const onMove = (em) => {
+                        const delta = Math.abs(em.clientX - startX);
+                        if (delta > 3) isDrag = true;
+
+                        if (isDrag) {
+                            // Use mouse X position directly as the new width
+                            const newW = em.clientX;
+                            const maxW = window.innerWidth;
+                            const STRIP_W = 16;
+
+                            if (newW < 50) {
+                                // Save a reasonable width to restore later
+                                this.state.prevSidebarWidth = startWidth || 350;
+                                this.state.collapsed = true;
+                                this.render();
+                            } else {
+                                this.state.collapsed = false;
+                                // Snap to edge if within 30px (leave room for strip)
+                                if (newW > maxW - 30) {
+                                    // Save previous width before going full
+                                    if (this.state.sidebarWidth < maxW - 30) {
+                                        this.state.prevSidebarWidth = this.state.sidebarWidth;
+                                    }
+                                    this.state.sidebarWidth = maxW - STRIP_W;
+                                } else {
+                                    this.state.sidebarWidth = Math.max(150, newW);
+                                }
+                                this.render();
+                            }
+                        }
+                    };
+
+                    const onUp = () => {
+                        window.removeEventListener('mousemove', onMove);
+                        window.removeEventListener('mouseup', onUp);
+                        this.dom.overlay.style.display = 'none';
+
+                        // Click to restore
+                        if (!isDrag) {
+                            onClickRestore();
+                        }
+                    };
+
+                    window.addEventListener('mousemove', onMove);
+                    window.addEventListener('mouseup', onUp);
+                });
+            },
+
+            startDrag(e, cursor, callback, getStart) {
+                e.preventDefault();
+                const startX = e.clientX;
+                const startVal = getStart();
+                this.dom.overlay.style.display = 'block';
+                this.dom.overlay.style.cursor = cursor;
+
+                const onMove = (em) => {
+                    const delta = em.clientX - startX;
+                    if(callback(delta, startVal)) onUp();
+                };
+                const onUp = () => {
+                    window.removeEventListener('mousemove', onMove);
+                    window.removeEventListener('mouseup', onUp);
+                    this.dom.overlay.style.display = 'none';
+                };
+                window.addEventListener('mousemove', onMove);
+                window.addEventListener('mouseup', onUp);
+            },
+
+            updatePreview() {
+                const html = this.cms.html.getValue();
+                const css = `<style>${this.cms.css.getValue()}</style>`;
+                const js = `<script>${this.cms.js.getValue()}<\/script>`;
+                const doc = this.dom.preview.contentDocument || this.dom.preview.contentWindow.document;
+                doc.open(); doc.write(html + css + js); doc.close();
+            }
+        };
+
+        app.init();
+    </script>
+</body>
+</html>
