@@ -1,8 +1,9 @@
 # AeroCode
 
-CodePen with Frutiger Aero aesthetic. Single HTML file, no build step.
+CodePen with Frutiger Aero aesthetic. Single HTML file, no build step. One-day project, took < 6h start to finish.
 
-https://slightknack.dev/aerocode.html
+**Live demo: [isaac.sh/aerocode](https://slightknack.dev/aerocode.html
+)**
 
 <table>
 <tr>
