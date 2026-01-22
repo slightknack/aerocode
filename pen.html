@@ -166,6 +166,70 @@
         iframe { width: 100%; height: 100%; border: none; }
         .hidden { display: none !important; }
 
+        /* --- Bottom Toolbar --- */
+        .bottom-toolbar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--gap);
+            z-index: 50;
+        }
+
+        .mode-switcher {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .mode-tag {
+            font-size: 10px;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 4px 10px;
+            border-radius: 12px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+        .mode-tag:hover { background: rgba(255, 255, 255, 0.7); color: #333; }
+        .mode-tag.active { background: #0078d7; color: white; border-color: #0066b8; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+
+        .share-btn {
+            font-size: 10px;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 4px 12px;
+            border-radius: 12px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .share-btn:hover { background: rgba(255, 255, 255, 0.7); color: #333; }
+        .share-btn.synced { background: #27c93f; color: white; border-color: #21a132; }
+        .share-btn.synced:hover { background: #2ed847; }
+
+        /* --- Copy Button in Headers --- */
+        .copy-btn {
+            font-size: 9px;
+            color: #999;
+            cursor: pointer;
+            margin-left: 8px;
+            opacity: 0.6;
+            transition: opacity 0.15s, color 0.15s;
+        }
+        .copy-btn:hover { opacity: 1; color: #666; }
+        .copy-btn.copied { color: #27c93f; opacity: 1; }
+
     </style>
 </head>
 <body>
@@ -181,6 +245,7 @@
             <div class="editor-header" id="header-html">
                 <div style="display:flex; align-items:center">
                     <span class="label">HTML</span>
+                    <span class="copy-btn" onclick="app.copyCode('html', event)">copy</span>
                     <div class="fs-nav">
                         <span class="fs-tag active">HTML</span>
                         <span class="fs-tag" onclick="app.switchFs('css')">CSS</span>
@@ -201,6 +266,7 @@
             <div class="editor-header" id="header-css">
                 <div style="display:flex; align-items:center">
                     <span class="label">CSS</span>
+                    <span class="copy-btn" onclick="app.copyCode('css', event)">copy</span>
                     <div class="fs-nav">
                         <span class="fs-tag" onclick="app.switchFs('html')">HTML</span>
                         <span class="fs-tag active">CSS</span>
@@ -221,6 +287,7 @@
             <div class="editor-header" id="header-js">
                 <div style="display:flex; align-items:center">
                     <span class="label">JS</span>
+                    <span class="copy-btn" onclick="app.copyCode('js', event)">copy</span>
                     <div class="fs-nav">
                         <span class="fs-tag" onclick="app.switchFs('html')">HTML</span>
                         <span class="fs-tag" onclick="app.switchFs('css')">CSS</span>
@@ -234,6 +301,17 @@
                 </div>
             </div>
             <div class="editor-content"><textarea id="code-js"></textarea></div>
+        </div>
+
+        <!-- Bottom Toolbar -->
+        <div class="bottom-toolbar" id="bottom-toolbar">
+            <div class="mode-switcher">
+                <span class="mode-tag active" id="mode-vim" onclick="app.setKeymap('vim')">VIM</span>
+                <span class="mode-tag" id="mode-normal" onclick="app.setKeymap('default')">NORMAL</span>
+            </div>
+            <div class="share-btn" id="share-btn" onclick="app.share()">
+                <span>SHARE</span>
+            </div>
         </div>
 
     </div>
@@ -280,13 +358,14 @@
 }
 
 .gel-btn:hover { filter: brightness(1.05); }`,
-            js: `document.querySelector('.gel-btn').addEventListener('click', () => {
+            js: `document.querySelector('.gel-btn')?.addEventListener('click', () => {
   alert('Frutiger Aero: 2004 - Forever');
 });`
         };
 
         const MIN_H = 28; // Header height
         const GAP = 8;
+        const TOOLBAR_H = 32; // Bottom toolbar height
         const SNAP_THRESHOLD = 60; // Pixel height to snap to close/open
 
         const app = {
@@ -357,7 +436,7 @@
                 this.dom.sidebar.classList.remove('hidden');
                 this.dom.strip.style.display = 'none';
                 this.dom.sidebar.style.width = `${s.sidebarWidth}px`;
-                
+
                 // Show preview strip when sidebar is fully extended (preview hidden)
                 const STRIP_W = 16;
                 if (s.sidebarWidth >= maxW - STRIP_W - 10) {
@@ -393,13 +472,13 @@
                     const cssH = s.minimized.css ? MIN_H : (s.split2 - s.split1 - GAP);
                     this.positionBox('css', cssTop, cssH);
 
-                    // JS (ends at GAP from bottom)
+                    // JS (ends at GAP + TOOLBAR_H from bottom)
                     const jsTop = cssTop + cssH + GAP;
                     // If JS is minimized, it has fixed height. If open, it fills rest.
                     if (s.minimized.js) {
                         this.positionBox('js', jsTop, MIN_H);
                     } else {
-                        this.positionBox('js', jsTop, null, GAP); // Fill rest with bottom padding
+                        this.positionBox('js', jsTop, null, GAP + TOOLBAR_H); // Fill rest with bottom padding + toolbar
                     }
 
                     // Reset Controls
@@ -436,7 +515,7 @@
             toggleMin(id) {
                 const s = this.state;
                 // Usable height excludes top and bottom padding
-                const usableH = this.dom.sidebar.clientHeight - 2 * GAP;
+                const usableH = this.dom.sidebar.clientHeight - 2 * GAP - TOOLBAR_H;
 
                 if (!s.minimized[id]) {
                     // Currently open -> Minimize it
@@ -531,7 +610,7 @@
                         // Use mouse X position directly as the new width
                         const newW = em.clientX;
                         const maxW = window.innerWidth;
-                        
+
                         if (newW < 50) {
                             this.state.prevSidebarWidth = startWidth;
                             this.state.collapsed = true;
@@ -539,7 +618,7 @@
                             onUp();
                             return;
                         }
-                        
+
                         // Snap to edge if within 30px (leave 16px for preview strip)
                         const STRIP_W = 16;
                         if (newW > maxW - 30) {
@@ -611,7 +690,7 @@
                     const startS1 = this.state.split1;
                     const startS2 = this.state.split2;
                     // Usable height excludes top and bottom padding
-                    const usableH = this.dom.sidebar.clientHeight - 2 * GAP;
+                    const usableH = this.dom.sidebar.clientHeight - 2 * GAP - TOOLBAR_H;
 
                     const onMove = (em) => {
                         const delta = em.clientY - startY;
@@ -636,10 +715,10 @@
                                 // split2 will be n1 + GAP + MIN_H, JS needs MIN_H at bottom
                                 const maxN1 = usableH - GAP - MIN_H - GAP - MIN_H;
                                 n1 = Math.min(n1, maxN1);
-                                
+
                                 this.state.split1 = n1;
                                 this.state.split2 = n1 + GAP + MIN_H;
-                                
+
                                 // Snap logic for JS: if JS height falls below threshold, minimize it
                                 const jsTop = this.state.split2 + GAP;
                                 const jsH = usableH - jsTop;
@@ -832,10 +911,140 @@
                 const js = `<script>${this.cms.js.getValue()}<\/script>`;
                 const doc = this.dom.preview.contentDocument || this.dom.preview.contentWindow.document;
                 doc.open(); doc.write(html + css + js); doc.close();
+
+                // Debounced URL update
+                this.scheduleUrlUpdate();
+            },
+
+            scheduleUrlUpdate() {
+                if (this.urlUpdateTimeout) {
+                    clearTimeout(this.urlUpdateTimeout);
+                }
+                this.urlUpdateTimeout = setTimeout(() => this.updateUrl(), 500);
+            },
+
+            async updateUrl() {
+                const data = {
+                    html: this.cms.html.getValue(),
+                    css: this.cms.css.getValue(),
+                    js: this.cms.js.getValue()
+                };
+
+                const json = JSON.stringify(data);
+                const compressed = await this.compress(json);
+                const encoded = btoa(String.fromCharCode(...new Uint8Array(compressed)));
+
+                const url = new URL(window.location.href);
+                url.hash = encoded;
+                history.replaceState(null, '', url);
+            },
+
+            setKeymap(keymap) {
+                const vimBtn = document.getElementById('mode-vim');
+                const normalBtn = document.getElementById('mode-normal');
+
+                Object.values(this.cms).forEach(cm => {
+                    cm.setOption('keyMap', keymap);
+                });
+
+                if (keymap === 'vim') {
+                    vimBtn.classList.add('active');
+                    normalBtn.classList.remove('active');
+                } else {
+                    vimBtn.classList.remove('active');
+                    normalBtn.classList.add('active');
+                }
+            },
+
+            async share() {
+                // Ensure URL is up to date before copying
+                if (this.urlUpdateTimeout) {
+                    clearTimeout(this.urlUpdateTimeout);
+                }
+                await this.updateUrl();
+
+                // Copy current URL to clipboard
+                await navigator.clipboard.writeText(window.location.href);
+
+                // Mark share as synced and clear copy buttons (clipboard changed)
+                const btn = document.getElementById('share-btn');
+                btn.classList.add('synced');
+                this.clearCopyState();
+            },
+
+            clearShareState() {
+                document.getElementById('share-btn').classList.remove('synced');
+            },
+
+            async compress(str) {
+                const stream = new Blob([str]).stream();
+                const compressed = stream.pipeThrough(new CompressionStream('gzip'));
+                return new Response(compressed).arrayBuffer();
+            },
+
+            async decompress(buffer) {
+                const stream = new Blob([buffer]).stream();
+                const decompressed = stream.pipeThrough(new DecompressionStream('gzip'));
+                return new Response(decompressed).text();
+            },
+
+            async loadFromHash() {
+                const hash = window.location.hash.slice(1);
+                if (!hash) return;
+
+                try {
+                    const binary = atob(hash);
+                    const bytes = new Uint8Array(binary.length);
+                    for (let i = 0; i < binary.length; i++) {
+                        bytes[i] = binary.charCodeAt(i);
+                    }
+
+                    const json = await this.decompress(bytes.buffer);
+                    const data = JSON.parse(json);
+
+                    if (data.html !== undefined) this.cms.html.setValue(data.html);
+                    if (data.css !== undefined) this.cms.css.setValue(data.css);
+                    if (data.js !== undefined) this.cms.js.setValue(data.js);
+
+                    // Mark as synced since we just loaded
+                    document.getElementById('share-btn').classList.add('synced');
+                } catch (e) {
+                    console.warn('Failed to load from hash:', e);
+                }
+            },
+
+            copyCode(lang, event) {
+                event.stopPropagation();
+                event.preventDefault();
+                const code = this.cms[lang].getValue();
+                navigator.clipboard.writeText(code);
+
+                // Clear share button and other copy buttons (clipboard changed)
+                this.clearShareState();
+                document.querySelectorAll('.copy-btn').forEach(btn => {
+                    btn.textContent = 'copy';
+                    btn.classList.remove('copied');
+                });
+
+                const btn = event.target;
+                btn.textContent = 'copied!';
+                btn.classList.add('copied');
+
+                // Track which copy button is active
+                this.state.activeCopyBtn = { lang, btn };
+            },
+
+            clearCopyState() {
+                if (this.state.activeCopyBtn) {
+                    this.state.activeCopyBtn.btn.textContent = 'copy';
+                    this.state.activeCopyBtn.btn.classList.remove('copied');
+                    this.state.activeCopyBtn = null;
+                }
             }
         };
 
         app.init();
+        app.loadFromHash();
     </script>
 </body>
 </html>
