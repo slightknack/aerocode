@@ -1,8 +1,13 @@
 # AeroCode
 
-A CodePen clone with Frutiger Aero aesthetic. Single HTML file, no build step.
+CodePen with Frutiger Aero aesthetic. Single HTML file, no build step.
 
 https://slightknack.dev/aerocode.html
+
+![Aerocode](images/00-aerocode.png)
+![Selection](images/01-selection.png)
+![Fullscreen](images/02-fullscreen.png)
+![Collapsed](images/03-collapsed.png)
 
 ## Features
 
