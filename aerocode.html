@@ -1,3 +1,10 @@
+<!--
+  name: AeroCode
+  description: CodePen with Frutiger Aero aesthetic
+  author: Isaac Clayton (https://isaac.sh)
+  tools: Zed, Gemini 3 Pro Preview, Claude Opus 4.5
+  repo: https://github.com/slightknack/aerocode
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,9 +14,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/neat.min.css">
     <style>
-        /* ============================================
-           CSS Variables
-           ============================================ */
         :root {
             --glass-border: 1px solid rgba(255, 255, 255, 0.6);
             --bg-grad: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
@@ -20,9 +24,6 @@
             --radius: 10px;
         }
 
-        /* ============================================
-           Base Styles
-           ============================================ */
         * { box-sizing: border-box; }
 
         body {
@@ -38,9 +39,6 @@
 
         .hidden { display: none !important; }
 
-        /* ============================================
-           Drag Overlay (captures mouse during drag)
-           ============================================ */
         #drag-overlay {
             position: fixed;
             inset: 0;
@@ -48,9 +46,6 @@
             display: none;
         }
 
-        /* ============================================
-           Sidebar Strips (collapsed/expanded edges)
-           ============================================ */
         .sidebar-strip, .preview-strip {
             width: 16px;
             height: 100vh;
@@ -59,15 +54,11 @@
             display: none;
             z-index: 100;
             backdrop-filter: blur(10px);
-
         }
         .sidebar-strip { border-right: 1px solid rgba(0, 120, 215, 0.8); }
         .preview-strip { border-left: 1px solid rgba(0, 120, 215, 0.8); flex-shrink: 0; }
         .sidebar-strip:hover, .preview-strip:hover { background: rgba(0, 120, 215, 0.8); }
 
-        /* ============================================
-           Main Sidebar
-           ============================================ */
         .sidebar {
             display: flex;
             flex-direction: column;
@@ -91,9 +82,6 @@
             z-index: 50;
         }
 
-        /* ============================================
-           Editor Panels
-           ============================================ */
         .editor-box {
             position: absolute;
             left: var(--gap);
@@ -136,9 +124,6 @@
             background: rgba(255, 255, 255, 0.5);
         }
 
-        /* ============================================
-           Traffic Light Buttons
-           ============================================ */
         .controls { display: flex; gap: 6px; align-items: center; }
 
         .traffic-btn {
@@ -159,9 +144,6 @@
         .btn-green { background: #27c93f; border-color: #21a132; }
         .btn-red { background: #ff5f57; border-color: #e0443e; }
 
-        /* ============================================
-           Fullscreen Mode
-           ============================================ */
         .sidebar.fullscreen-mode .editor-box { display: none; }
         .sidebar.fullscreen-mode .editor-box.fs-active {
             display: flex;
@@ -183,14 +165,10 @@
             border-radius: 12px;
             color: #666;
             cursor: pointer;
-
         }
         .fs-tag:hover { background: rgba(0, 0, 0, 0.1); color: #333; }
         .fs-tag.active { background: #0078d7; color: white; }
 
-        /* ============================================
-           CodeMirror Overrides
-           ============================================ */
         .CodeMirror {
             position: absolute;
             inset: 0;
@@ -205,9 +183,6 @@
             border-right: 1px solid rgba(0, 0, 0, 0.06) !important;
         }
 
-        /* ============================================
-           Preview Pane
-           ============================================ */
         .preview {
             flex: 1;
             min-width: 0;
@@ -217,9 +192,6 @@
         }
         .preview iframe { width: 100%; height: 100%; border: none; }
 
-        /* ============================================
-           Bottom Toolbar
-           ============================================ */
         .bottom-toolbar {
             position: absolute;
             bottom: var(--gap);
@@ -243,7 +215,6 @@
             border-radius: 12px;
             color: #666;
             cursor: pointer;
-
             border: 1px solid rgba(255, 255, 255, 0.6);
         }
         .mode-tag:hover, .share-btn:hover { background: rgba(255, 255, 255, 0.7); color: #333; }
@@ -253,16 +224,12 @@
         .share-btn.copied { background: rgba(255, 255, 255, 0.5); color: #666; border-color: rgba(255, 255, 255, 0.6); }
         .share-btn.copied:hover { background: rgba(255, 255, 255, 0.7); color: #333; }
 
-        /* ============================================
-           Copy Button
-           ============================================ */
         .copy-btn {
             font-size: 9px;
             color: #999;
             cursor: pointer;
             margin-left: 8px;
             opacity: 0.6;
-
         }
         .copy-btn:hover { opacity: 1; color: #666; }
         .copy-btn.copied { color: #0078d7; opacity: 1; }
@@ -358,7 +325,10 @@
                 <span class="mode-tag active" data-keymap="vim">VIM</span>
                 <span class="mode-tag" data-keymap="default">NORMAL</span>
             </div>
-            <div class="share-btn" id="share-btn">SHARE</div>
+            <div style="display: flex; gap: 4px;">
+                <div class="share-btn" id="new-btn">NEW</div>
+                <div class="share-btn" id="share-btn">SHARE</div>
+            </div>
         </div>
     </div>
 
@@ -373,33 +343,23 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/keymap/vim.min.js"></script>
 
     <script>
-    /**
-     * AeroCode - A CodePen-like editor with Frutiger Aero aesthetic
-     * 
-     * Architecture:
-     * - Declarative state model: { minimized, heights, sidebarWidth, fullscreen }
-     * - Pure render function derives DOM from state
-     * - Panel drag uses simple algorithm: shrink/grow panels, enforce MIN_H, no auto-collapse
-     */
-    
+    // Layout constants
     const PANELS = ['html', 'css', 'js'];
-    const HEADER_H = 28;   // Header height
-    const MIN_H = 50;      // Minimum panel height when open (header + 1.5 lines)
-    const COLLAPSED_H = HEADER_H; // Height when collapsed (header only)
-    const GAP = 8;         // Gap between panels
-    const TOOLBAR_H = 32 + GAP;  // Bottom toolbar height (32) + gap below toolbar (8)
-    const MIN_SIDEBAR_W = 250;
+    const HEADER_H = 28;
+    const MIN_H = 50;       // min panel height when open (header + 1.5 lines)
+    const COLLAPSED_H = HEADER_H;
+    const GAP = 8;
+    const TOOLBAR_H = 32 + GAP;
+    const MIN_SIDEBAR_W = 300;
     const STRIP_W = 16;
 
     const DEFAULTS = {
-        html: `<div class="wrapper">\n  <button class="gel-btn">Download</button>\n</div>`,
+        html: `<div class="wrapper">\n  <button class="gel-btn">Download<br>Aerocode</button>\n</div>`,
         css: `body {\n  height: 100vh; margin: 0;\n  display: flex; justify-content: center; align-items: center;\n  background-image:\n    linear-gradient(#eee 1px, transparent 1px),\n    linear-gradient(90deg, #eee 1px, transparent 1px);\n  background-size: 20px 20px;\n  background-color: #fafafa;\n}\n\n.gel-btn {\n  font-family: -apple-system, sans-serif;\n  font-weight: 600; font-size: 14px;\n  color: #fff; text-shadow: 0 -1px 0 rgba(0,0,0,0.2);\n  padding: 8px 30px;\n  border: 1px solid #2e6da4; border-radius: 100px;\n  background: linear-gradient(to bottom, #7bbaf7 0%, #4096ee 100%);\n  box-shadow: 0 2px 5px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.4);\n  cursor: pointer;\n}\n\n.gel-btn:hover { filter: brightness(1.05); }`,
-        js: `document.querySelector('.gel-btn')?.addEventListener('click', () => {\n  alert('Frutiger Aero: 2004 - Forever');\n});`
+        js: `document.querySelector('.gel-btn')?.addEventListener('click', () => {\n  const a = document.createElement('a');\n  a.href = 'https://slightknack.dev/aerocode.html';\n  a.download = 'aerocode.html';\n  a.click();\n});`
     };
 
-    // ============================================
-    // Application State
-    // ============================================
+    // Application state (declarative model)
     const state = {
         sidebarWidth: 350,
         prevSidebarWidth: 350,
@@ -407,17 +367,13 @@
         fullscreen: null,
         minimized: { html: false, css: false, js: false },
         heights: { html: 200, css: 200, js: 200 },
-        // Declarative clipboard state: null or { type: 'share' | 'copy', lang?: string }
-        clipboard: null
+        clipboard: null  // { type: 'share' | 'copy', lang?: string } or null
     };
 
-    // DOM references
     const dom = {};
     const editors = {};
 
-    // ============================================
-    // Geometry Helpers
-    // ============================================
+    // Geometry helpers
     function getUsableHeight() {
         return dom.sidebar.clientHeight - TOOLBAR_H;
     }
@@ -426,29 +382,20 @@
         return state.minimized[panel] ? COLLAPSED_H : state.heights[panel];
     }
 
-    function getTotalPanelHeight() {
-        return PANELS.reduce((sum, p) => sum + getEffectiveHeight(p), 0) + (PANELS.length + 1) * GAP;
-    }
-
-    // ============================================
-    // Constraint Enforcement
-    // ============================================
+    // Ensure panels fit within available space
     function enforceConstraints() {
         const usable = getUsableHeight();
         const totalGaps = (PANELS.length + 1) * GAP;
         const availableForPanels = usable - totalGaps;
-        
-        // Count open panels and their total height
+
         const openPanels = PANELS.filter(p => !state.minimized[p]);
         const minimizedCount = PANELS.length - openPanels.length;
         const spaceForOpen = availableForPanels - minimizedCount * COLLAPSED_H;
-        
+
         if (openPanels.length === 0) return;
-        
-        // Calculate current total of open panel heights
+
         let currentOpenTotal = openPanels.reduce((sum, p) => sum + state.heights[p], 0);
-        
-        // If overflow, shrink proportionally but respect MIN_H
+
         if (currentOpenTotal > spaceForOpen) {
             const scale = spaceForOpen / currentOpenTotal;
             openPanels.forEach(p => {
@@ -457,9 +404,6 @@
         }
     }
 
-    // ============================================
-    // Initialize Heights Evenly
-    // ============================================
     function initializeHeights() {
         const usable = getUsableHeight();
         const totalGaps = (PANELS.length + 1) * GAP;
@@ -467,13 +411,10 @@
         PANELS.forEach(p => { state.heights[p] = heightPerPanel; });
     }
 
-    // ============================================
-    // Render (Pure derivation from state)
-    // ============================================
+    // Render: derive DOM from state
     function render() {
         const maxW = window.innerWidth;
 
-        // Sidebar collapsed
         if (state.collapsed) {
             dom.sidebar.classList.add('hidden');
             dom.strip.style.display = 'block';
@@ -485,10 +426,8 @@
         dom.strip.style.display = 'none';
         dom.sidebar.style.width = `${state.sidebarWidth}px`;
 
-        // Preview strip when sidebar is at max
         dom.previewStrip.style.display = (state.sidebarWidth >= maxW - STRIP_W - 10) ? 'block' : 'none';
 
-        // Fullscreen mode
         if (state.fullscreen) {
             dom.sidebar.classList.add('fullscreen-mode');
             PANELS.forEach(p => {
@@ -501,36 +440,32 @@
             });
         } else {
             dom.sidebar.classList.remove('fullscreen-mode');
-            
-            // Normal mode: position panels
+
             let top = GAP;
             PANELS.forEach(p => {
                 const h = getEffectiveHeight(p);
                 const box = dom.boxes[p];
-                
+
                 box.classList.remove('fs-active');
                 box.style.top = `${top}px`;
                 box.style.height = `${h}px`;
                 box.style.bottom = 'auto';
-                
+
                 box.querySelector('.btn-red').style.display = 'none';
                 box.querySelector('.btn-green').style.display = 'flex';
                 box.querySelector('.btn-yellow').style.display = 'flex';
-                
-                // Set cursor: HTML header is click-only, others are draggable
+
                 document.getElementById(`header-${p}`).style.cursor = p === 'html' ? 'pointer' : 'row-resize';
-                
+
                 top += h + GAP;
             });
         }
 
-        // Refresh CodeMirror instances
         requestAnimationFrame(() => {
             Object.values(editors).forEach(cm => cm.refresh());
         });
 
-        // Render clipboard button states (declarative)
-        // Share button: blue by default, white with "COPIED" after clicked (until change)
+        // Clipboard button states
         const shareBtn = document.getElementById('share-btn');
         if (state.clipboard?.type === 'share') {
             shareBtn.classList.add('copied');
@@ -540,7 +475,6 @@
             shareBtn.textContent = 'SHARE';
         }
 
-        // Copy buttons: show "copied!" when that lang was copied
         document.querySelectorAll('.copy-btn').forEach(btn => {
             const lang = btn.dataset.lang;
             if (state.clipboard?.type === 'copy' && state.clipboard.lang === lang) {
@@ -551,31 +485,23 @@
                 btn.classList.remove('copied');
             }
         });
-
-        // Update URL when UI state changes (debounced)
-        scheduleUrlUpdate();
     }
 
-    // ============================================
-    // Panel Actions
-    // ============================================
+    // Panel actions
     function toggleMinimize(panel) {
         const idx = PANELS.indexOf(panel);
-        
+
         if (!state.minimized[panel]) {
-            // Minimize: give freed space to first open panel below, else above
             const freedSpace = state.heights[panel] - COLLAPSED_H;
             state.minimized[panel] = true;
-            
+
             let recipient = PANELS.slice(idx + 1).find(p => !state.minimized[p]);
             if (!recipient) recipient = PANELS.slice(0, idx).reverse().find(p => !state.minimized[p]);
             if (recipient) state.heights[recipient] += freedSpace;
         } else {
-            // Restore: take space from first open panel below, else above
             const neededSpace = state.heights[panel] - COLLAPSED_H;
             state.minimized[panel] = false;
-            
-            // If all others minimized, expand to fill
+
             const othersOpen = PANELS.filter(p => p !== panel && !state.minimized[p]);
             if (othersOpen.length === 0) {
                 const usable = getUsableHeight();
@@ -583,14 +509,12 @@
                 state.heights[panel] = usable - totalGaps - (PANELS.length - 1) * COLLAPSED_H;
             } else {
                 let remaining = neededSpace;
-                // Take from panels below first
                 for (const p of PANELS.slice(idx + 1)) {
                     if (state.minimized[p] || remaining <= 0) continue;
                     const canTake = Math.min(remaining, state.heights[p] - MIN_H);
                     state.heights[p] -= canTake;
                     remaining -= canTake;
                 }
-                // Then from panels above
                 for (const p of PANELS.slice(0, idx).reverse()) {
                     if (state.minimized[p] || remaining <= 0) continue;
                     const canTake = Math.min(remaining, state.heights[p] - MIN_H);
@@ -615,10 +539,7 @@
         }
     }
 
-    // ============================================
-    // Drag State Computation (Pure Function)
-    // No auto-collapse - panels stop at MIN_H
-    // ============================================
+    // Drag computation: panels exchange space, no auto-collapse
     function computeDragState(startState, draggedPanel, delta) {
         const panelIdx = PANELS.indexOf(draggedPanel);
         const newState = {
@@ -626,45 +547,35 @@
             heights: { ...startState.heights }
         };
 
-        // Check if there are any open panels above
         const hasOpenPanelAbove = PANELS.slice(0, panelIdx).some(p => !startState.minimized[p]);
-        
-        // Check if there are any open panels below
-        const hasOpenPanelBelow = PANELS.slice(panelIdx + 1).some(p => !startState.minimized[p]);
 
         if (delta < 0) {
-            // DRAG UP: grow dragged panel, shrink panels above
-            if (!hasOpenPanelAbove) return newState; // Nothing to shrink
-            
+            if (!hasOpenPanelAbove) return newState;
+
             let growAmount = -delta;
-            
-            // Shrink panels above (closest first)
+
             for (let i = panelIdx - 1; i >= 0 && growAmount > 0; i--) {
                 const p = PANELS[i];
                 if (newState.minimized[p]) continue;
-                
+
                 const canShrink = newState.heights[p] - MIN_H;
                 const shrink = Math.min(canShrink, growAmount);
                 newState.heights[p] -= shrink;
                 growAmount -= shrink;
             }
-            
-            // Grow dragged panel by what we could shrink
+
             const actualGrow = -delta - growAmount;
             if (!startState.minimized[draggedPanel]) {
                 newState.heights[draggedPanel] += actualGrow;
             }
         } else if (delta > 0) {
-            // DRAG DOWN: shrink dragged panel, grow panels above
-            if (!hasOpenPanelAbove) return newState; // Nowhere to give space
-            
+            if (!hasOpenPanelAbove) return newState;
+
             if (!startState.minimized[draggedPanel]) {
-                // Shrink dragged panel (to MIN_H minimum)
                 const canShrink = startState.heights[draggedPanel] - MIN_H;
                 const shrink = Math.min(canShrink, delta);
                 newState.heights[draggedPanel] = startState.heights[draggedPanel] - shrink;
-                
-                // Give freed space to first open panel above
+
                 for (let i = panelIdx - 1; i >= 0; i--) {
                     const p = PANELS[i];
                     if (newState.minimized[p]) continue;
@@ -677,19 +588,16 @@
         return newState;
     }
 
-    // ============================================
-    // Event Binding
-    // ============================================
+    // Event binding
     function bindEvents() {
-        // Sidebar resizer
         dom.resizer.addEventListener('mousedown', (e) => {
             e.preventDefault();
             const startWidth = state.sidebarWidth;
-            
+
             startDrag('col-resize', (em) => {
                 const newW = em.clientX;
                 const maxW = window.innerWidth;
-                
+
                 if (newW < 50) {
                     state.prevSidebarWidth = startWidth;
                     state.collapsed = true;
@@ -703,17 +611,14 @@
             });
         });
 
-        // Sidebar strip (collapsed)
         bindStripDrag(dom.strip, () => {
             state.collapsed = false;
             state.sidebarWidth = state.prevSidebarWidth;
             render();
         });
 
-        // Preview strip (extended) - click restores to previous width
         bindStripDrag(dom.previewStrip, () => {
             const maxW = window.innerWidth;
-            // If prevSidebarWidth is also full-width, restore to a reasonable default
             if (state.prevSidebarWidth >= maxW - STRIP_W - 10) {
                 state.sidebarWidth = Math.min(350, maxW * 0.4);
             } else {
@@ -722,14 +627,12 @@
             render();
         });
 
-        // Panel headers
         PANELS.forEach(panel => {
             const header = document.getElementById(`header-${panel}`);
             header.addEventListener('mousedown', (e) => {
                 if (e.target.closest('.controls') || e.target.closest('.fs-nav') || e.target.closest('.copy-btn')) return;
                 e.preventDefault();
 
-                // HTML: click only (no drag)
                 if (panel === 'html') {
                     toggleMinimize('html');
                     return;
@@ -758,7 +661,6 @@
             });
         });
 
-        // Traffic light buttons (using event delegation)
         document.querySelectorAll('.traffic-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -769,7 +671,6 @@
             });
         });
 
-        // Fullscreen tab switching
         document.querySelectorAll('.fs-tag').forEach(tag => {
             tag.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -777,17 +678,15 @@
             });
         });
 
-        // Copy buttons (declarative state update)
         document.querySelectorAll('.copy-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
                 const lang = btn.dataset.lang;
                 const text = editors[lang].getValue();
-                
+
                 try {
                     await navigator.clipboard.writeText(text);
                 } catch (err) {
-                    // Fallback for file:// protocol or older browsers
                     const tmp = document.createElement('textarea');
                     tmp.value = text;
                     tmp.style.position = 'fixed';
@@ -798,13 +697,12 @@
                     document.execCommand('copy');
                     document.body.removeChild(tmp);
                 }
-                
+
                 state.clipboard = { type: 'copy', lang };
                 render();
             });
         });
 
-        // Keymap switcher
         document.querySelectorAll('.mode-tag').forEach(tag => {
             tag.addEventListener('click', () => {
                 const keymap = tag.dataset.keymap;
@@ -814,16 +712,32 @@
             });
         });
 
-        // Share button (declarative state update)
+        document.getElementById('new-btn').addEventListener('click', () => {
+            if (!confirm('Clear all code and start fresh?')) return;
+
+            editors.html.setValue('');
+            editors.css.setValue('');
+            editors.js.setValue('');
+
+            state.collapsed = false;
+            state.fullscreen = null;
+            state.minimized = { html: false, css: false, js: false };
+            state.clipboard = null;
+            initializeHeights();
+
+            history.replaceState(null, '', location.pathname);
+
+            render();
+            updatePreview();
+        });
+
         document.getElementById('share-btn').addEventListener('click', async () => {
             await updateUrl();
             const url = window.location.href;
-            
-            // Try clipboard API first, fall back to execCommand
+
             try {
                 await navigator.clipboard.writeText(url);
             } catch (err) {
-                // Fallback for file:// protocol or older browsers
                 const tmp = document.createElement('textarea');
                 tmp.value = url;
                 tmp.style.position = 'fixed';
@@ -834,19 +748,17 @@
                 document.execCommand('copy');
                 document.body.removeChild(tmp);
             }
-            
+
             state.clipboard = { type: 'share' };
             render();
         });
 
-        // Window resize
         window.addEventListener('resize', () => {
             enforceConstraints();
             render();
         });
     }
 
-    // Drag helper
     function startDrag(cursor, onMove, onUp = () => {}) {
         dom.overlay.style.display = 'block';
         dom.overlay.style.cursor = cursor;
@@ -893,9 +805,7 @@
         });
     }
 
-    // ============================================
-    // Preview & URL Sharing
-    // ============================================
+    // Preview and URL state
     let urlTimeout = null;
 
     function updatePreview() {
@@ -917,21 +827,18 @@
 
     async function updateUrl() {
         try {
-            // Simplified state: code + sidebar open/closed + fullscreen panel
             const data = {
-                h: editors.html.getValue(),  // html
-                c: editors.css.getValue(),   // css
-                j: editors.js.getValue(),    // js
-                s: state.collapsed ? 0 : 1,  // sidebar: 0=closed, 1=open
-                f: state.fullscreen || ''    // fullscreen panel or empty
+                h: editors.html.getValue(),
+                c: editors.css.getValue(),
+                j: editors.js.getValue(),
+                s: state.collapsed ? 0 : 1,
+                f: state.fullscreen || ''
             };
             const json = JSON.stringify(data);
             const compressed = await new Response(new Blob([json]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer();
             const encoded = btoa(String.fromCharCode(...new Uint8Array(compressed)));
             history.replaceState(null, '', `${location.pathname}#${encoded}`);
-        } catch (err) {
-            console.error('updateUrl failed:', err);
-        }
+        } catch (err) {}
     }
 
     async function loadFromHash() {
@@ -941,27 +848,20 @@
             const bytes = Uint8Array.from(atob(hash), c => c.charCodeAt(0));
             const json = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
             const data = JSON.parse(json);
-            
-            // Load code
+
             if (data.h !== undefined) editors.html.setValue(data.h);
             if (data.c !== undefined) editors.css.setValue(data.c);
             if (data.j !== undefined) editors.js.setValue(data.j);
-            
-            // Load UI state
+
             if (data.s !== undefined) state.collapsed = data.s === 0;
             if (data.f !== undefined) state.fullscreen = data.f || null;
-            
+
             render();
-        } catch (e) {
-            console.warn('Failed to load from hash:', e);
-        }
+        } catch (e) {}
     }
 
-    // ============================================
-    // Initialization
-    // ============================================
+    // Init
     function init() {
-        // Cache DOM references
         dom.sidebar = document.getElementById('sidebar');
         dom.strip = document.getElementById('sidebar-strip');
         dom.previewStrip = document.getElementById('preview-strip');
@@ -974,7 +874,6 @@
             js: document.getElementById('box-js')
         };
 
-        // Initialize CodeMirror
         const modes = { html: 'htmlmixed', css: 'css', js: 'javascript' };
         PANELS.forEach(lang => {
             document.getElementById(`code-${lang}`).value = DEFAULTS[lang];
@@ -986,7 +885,6 @@
             });
             cm.on('change', () => {
                 updatePreview();
-                // Clear clipboard state when text is edited
                 if (state.clipboard !== null) {
                     state.clipboard = null;
                     render();
@@ -1002,7 +900,6 @@
         loadFromHash();
     }
 
-    // Start
     init();
     </script>
 </body>
