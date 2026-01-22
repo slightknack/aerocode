@@ -9,7 +9,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AeroCode</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/neat.min.css">
@@ -184,6 +184,7 @@
             right: var(--gap);
         }
         .editor-box .header-bar { border-bottom: 1px solid var(--border-dark); }
+        .preview > .header-bar { border-bottom: 1px solid var(--border-dark); }
 
         .editor-content {
             flex: 1;
@@ -207,6 +208,66 @@
         .fullscreen-mode .fs-nav { display: flex; }
 
         .mode-switcher { display: flex; gap: 4px; }
+
+        /* Frutiger Aero toggle buttons */
+        .mode-switcher .pill {
+            position: relative;
+            padding: 5px 12px;
+            border-radius: 50px;
+            background: linear-gradient(to bottom, #fff 0%, #e8e8e8 100%);
+            color: var(--text-muted);
+            box-shadow: 
+                0 4px 6px rgba(0, 0, 0, 0.15),
+                0 1px 0 rgba(255, 255, 255, 0.8) inset,
+                0 -2px 4px rgba(0, 0, 0, 0.08) inset;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            transition: all 0.15s ease-out;
+            transform: translateY(0);
+        }
+        .mode-switcher .pill::after {
+            content: "";
+            position: absolute;
+            top: 1px;
+            left: 15%;
+            right: 15%;
+            height: 45%;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), transparent);
+            border-radius: 50px;
+            pointer-events: none;
+        }
+        .mode-switcher .pill:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 10px rgba(0, 0, 0, 0.18),
+                0 1px 0 rgba(255, 255, 255, 0.9) inset,
+                0 -2px 4px rgba(0, 0, 0, 0.06) inset;
+            background: linear-gradient(to bottom, #fff 0%, #f0f0f0 100%);
+        }
+        .mode-switcher .pill:active {
+            transform: translateY(2px);
+            box-shadow: 
+                0 1px 2px rgba(0, 0, 0, 0.2),
+                0 1px 0 rgba(255, 255, 255, 0.4) inset,
+                0 -1px 2px rgba(0, 0, 0, 0.15) inset;
+        }
+        .mode-switcher .pill.active {
+            transform: translateY(2px);
+            background: linear-gradient(to bottom, #0066cc 0%, #0052a3 100%);
+            color: #fff;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+            border-color: #004080;
+            box-shadow: 
+                0 1px 2px rgba(0, 0, 0, 0.25),
+                0 1px 0 rgba(255, 255, 255, 0.2) inset,
+                0 -2px 6px rgba(0, 0, 0, 0.3) inset;
+        }
+        .mode-switcher .pill.active::after {
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4), transparent);
+        }
+        .mode-switcher .pill.active:hover {
+            transform: translateY(2px);
+            background: linear-gradient(to bottom, #0073e6 0%, #005cb8 100%);
+        }
 
         /* Bottom toolbar */
         .bottom-toolbar {
@@ -285,7 +346,7 @@
         .console-badge:empty { display: none; }
         .console-badge.has-errors { background: #e74c3c; color: #fff; }
 
-        .console-filters { display: flex; gap: 4px; margin-right: 8px; }
+        .console-filters { display: flex; gap: 4px; margin-left: 8px; margin-right: 8px; }
 
         .console-body {
             flex: 1;
@@ -368,48 +429,110 @@
         /* Matched tag highlighting */
         .CodeMirror-matchingtag { background: rgba(0, 120, 215, 0.15); }
 
-        /* Mobile: < 500px */
-        @media (max-width: 500px) {
-            /* Sidebar takes full width or is hidden */
-            .sidebar {
-                width: 100% !important;
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                z-index: 100;
-            }
-            .sidebar.hidden {
-                display: none !important;
-            }
+        /* ==============================================
+           CONDITIONAL VISIBILITY SYSTEM
+           [data-show="mobile"] - only visible in mobile layout
+           [data-show="desktop"] - only visible in desktop layout
+           ============================================== */
+        /* Default: hide mobile elements, show desktop elements */
+        [data-show="mobile"] { display: none !important; }
+        
+        /* Mobile layout: show mobile elements, hide desktop elements */
+        body.layout-mobile [data-show="mobile"] { display: flex !important; }
+        body.layout-mobile [data-show="desktop"] { display: none !important; }
+        
+        /* Desktop: text-btn should be inline, not flex */
+        .text-btn[data-show="desktop"] { display: inline !important; }
 
-            /* Always use fullscreen/tabbed mode */
-            .sidebar .editor-box { display: none; }
-            .sidebar .editor-box.fs-active {
-                display: flex;
-                position: absolute;
-                top: var(--gap) !important;
-                bottom: calc(var(--header-height) + var(--gap)) !important;
-                height: auto !important;
+        /* ==============================================
+           MOBILE LAYOUT STYLES
+           Applied when body has .layout-mobile class
+           ============================================== */
+        
+        /* Both sidebar and preview are full-screen in mobile */
+        body.layout-mobile .sidebar,
+        body.layout-mobile .preview {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100% !important;
+        }
+
+        /* Mobile view states */
+        body.layout-mobile.view-code .sidebar { display: flex; z-index: 10; }
+        body.layout-mobile.view-code .preview { display: none; }
+        
+        body.layout-mobile.view-preview .sidebar { display: none; }
+        body.layout-mobile.view-preview .preview { display: flex; z-index: 10; }
+        body.layout-mobile.view-preview .console-panel { display: none; }
+        
+        body.layout-mobile.view-console .sidebar { display: none; }
+        body.layout-mobile.view-console .preview { display: flex; z-index: 10; }
+        body.layout-mobile.view-console .preview iframe { display: none; }
+        /* Preview header bar hidden in console view (it uses data-show="mobile" so it's shown,
+           but we want it hidden when viewing console) */
+        body.layout-mobile.view-console .preview > .header-bar[data-show="mobile"] { display: none !important; }
+        body.layout-mobile.view-console .console-panel { 
+            flex: 1; 
+            max-height: none;
+            border-radius: 0;
+            border: none;
+        }
+
+        /* Mobile: full bleed layout with no gaps or rounded corners */
+        body.layout-mobile .sidebar { 
+            padding: 0;
+            background: transparent;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            border: none;
+        }
+        body.layout-mobile .sidebar .editor-box { display: none; }
+        body.layout-mobile .sidebar .editor-box.fs-active {
+            display: flex;
+            position: absolute;
+            top: 0 !important;
+            left: 0;
+            right: 0;
+            bottom: var(--header-height) !important;
+            height: auto !important;
+            border-radius: 0;
+            border: none;
+        }
+        body.layout-mobile .sidebar .bottom-toolbar {
+            border-radius: 0;
+        }
+        
+        /* Hide red exit-fullscreen button in mobile */
+        body.layout-mobile .traffic-btn.btn-red { display: none !important; }
+
+        /* Hide resizers and strips in mobile */
+        body.layout-mobile .sidebar-resizer,
+        body.layout-mobile .sidebar-strip,
+        body.layout-mobile .preview-strip { display: none !important; }
+
+        /* Console adjustments for mobile */
+        body.layout-mobile .console-panel {
+            max-height: 50vh;
+        }
+
+        /* Larger touch targets for mobile */
+        body.layout-mobile {
+            --header-height: 52px;
+        }
+        body.layout-mobile .pill {
+            padding: 13px 12px;
+            border-radius: 9999px;
+        }
+
+        /* Code hints adjustments for small screens */
+        @media (max-width: 600px) {
+            .CodeMirror-hints {
+                max-width: calc(100vw - 20px);
+                max-height: 150px;
             }
-            .sidebar .label { display: none; }
-            .sidebar .fs-nav { display: flex; }
-
-            /* Hide resizer on mobile */
-            .sidebar-resizer { display: none; }
-
-            /* Preview takes full space when sidebar closed */
-            .preview {
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-            }
-
-            /* Hide strips on mobile - use the sidebar toggle instead */
-            .sidebar-strip, .preview-strip { display: none !important; }
         }
     </style>
 </head>
@@ -423,7 +546,7 @@
         <div class="editor-box panel" id="box-html">
             <div class="header-bar" id="header-html">
                 <div style="display:flex;align-items:center">
-                    <span class="label">HTML</span>
+                    <span class="label" data-show="desktop">HTML</span>
                     <div class="fs-nav">
                         <span class="pill active" data-panel="html">HTML</span>
                         <span class="pill" data-panel="css">CSS</span>
@@ -432,10 +555,14 @@
                     <span class="text-btn" data-lang="html">copy</span>
                 </div>
                 <div class="controls">
-                    <div class="traffic-btn btn-yellow" data-action="minimize" data-panel="html">
+                    <div data-show="mobile" style="display:flex;gap:4px">
+                        <span class="pill" data-mobile-view="console">CONSOLE</span>
+                        <span class="pill" data-mobile-view="preview">PREVIEW</span>
+                    </div>
+                    <div class="traffic-btn btn-yellow" data-show="desktop" data-action="minimize" data-panel="html">
                         <svg viewBox="0 0 10 10"><path d="M2,5 L8,5"/></svg>
                     </div>
-                    <div class="traffic-btn btn-green" data-action="fullscreen" data-panel="html">
+                    <div class="traffic-btn btn-green" data-show="desktop" data-action="fullscreen" data-panel="html">
                         <svg viewBox="0 0 10 10"><path d="M5,2 L5,8 M2,5 L8,5"/></svg>
                     </div>
                     <div class="traffic-btn btn-red" data-action="exit-fullscreen" data-panel="html" style="display:none">
@@ -449,7 +576,7 @@
         <div class="editor-box panel" id="box-css">
             <div class="header-bar" id="header-css">
                 <div style="display:flex;align-items:center">
-                    <span class="label">CSS</span>
+                    <span class="label" data-show="desktop">CSS</span>
                     <div class="fs-nav">
                         <span class="pill" data-panel="html">HTML</span>
                         <span class="pill active" data-panel="css">CSS</span>
@@ -458,10 +585,14 @@
                     <span class="text-btn" data-lang="css">copy</span>
                 </div>
                 <div class="controls">
-                    <div class="traffic-btn btn-yellow" data-action="minimize" data-panel="css">
+                    <div data-show="mobile" style="display:flex;gap:4px">
+                        <span class="pill" data-mobile-view="console">CONSOLE</span>
+                        <span class="pill" data-mobile-view="preview">PREVIEW</span>
+                    </div>
+                    <div class="traffic-btn btn-yellow" data-show="desktop" data-action="minimize" data-panel="css">
                         <svg viewBox="0 0 10 10"><path d="M2,5 L8,5"/></svg>
                     </div>
-                    <div class="traffic-btn btn-green" data-action="fullscreen" data-panel="css">
+                    <div class="traffic-btn btn-green" data-show="desktop" data-action="fullscreen" data-panel="css">
                         <svg viewBox="0 0 10 10"><path d="M5,2 L5,8 M2,5 L8,5"/></svg>
                     </div>
                     <div class="traffic-btn btn-red" data-action="exit-fullscreen" data-panel="css" style="display:none">
@@ -475,7 +606,7 @@
         <div class="editor-box panel" id="box-js">
             <div class="header-bar" id="header-js">
                 <div style="display:flex;align-items:center">
-                    <span class="label">JS</span>
+                    <span class="label" data-show="desktop">JS</span>
                     <div class="fs-nav">
                         <span class="pill" data-panel="html">HTML</span>
                         <span class="pill" data-panel="css">CSS</span>
@@ -484,10 +615,14 @@
                     <span class="text-btn" data-lang="js">copy</span>
                 </div>
                 <div class="controls">
-                    <div class="traffic-btn btn-yellow" data-action="minimize" data-panel="js">
+                    <div data-show="mobile" style="display:flex;gap:4px">
+                        <span class="pill" data-mobile-view="console">CONSOLE</span>
+                        <span class="pill" data-mobile-view="preview">PREVIEW</span>
+                    </div>
+                    <div class="traffic-btn btn-yellow" data-show="desktop" data-action="minimize" data-panel="js">
                         <svg viewBox="0 0 10 10"><path d="M2,5 L8,5"/></svg>
                     </div>
-                    <div class="traffic-btn btn-green" data-action="fullscreen" data-panel="js">
+                    <div class="traffic-btn btn-green" data-show="desktop" data-action="fullscreen" data-panel="js">
                         <svg viewBox="0 0 10 10"><path d="M5,2 L5,8 M2,5 L8,5"/></svg>
                     </div>
                     <div class="traffic-btn btn-red" data-action="exit-fullscreen" data-panel="js" style="display:none">
@@ -504,6 +639,7 @@
                 <span class="pill" data-keymap="default">NORMAL</span>
             </div>
             <div style="display: flex; gap: 4px;">
+                <span class="pill" id="layout-btn">MOBILE</span>
                 <span class="pill" id="new-btn">NEW</span>
                 <span class="pill" id="share-btn">SHARE</span>
             </div>
@@ -512,30 +648,38 @@
 
     <div id="preview-strip" class="preview-strip"></div>
     <div class="preview">
+        <div class="header-bar" data-show="mobile">
+            <span class="label">PREVIEW</span>
+            <div class="controls">
+                <span class="pill" data-mobile-view="code">CODE</span>
+                <span class="pill" data-mobile-view="console">CONSOLE</span>
+            </div>
+        </div>
         <iframe id="preview-frame" sandbox="allow-scripts allow-modals"></iframe>
         <div id="console-panel" class="console-panel panel">
             <div class="header-bar" id="console-header">
                 <div style="display:flex;align-items:center">
                     <span class="label">CONSOLE</span>
                     <span class="console-badge" id="console-badge"></span>
-                    <span class="text-btn" id="console-copy">copy</span>
-                    <span class="text-btn" id="console-clear">clear</span>
-                </div>
-                <div class="controls">
                     <div class="console-filters">
                         <span class="pill active" data-filter="all">ALL</span>
                         <span class="pill" data-filter="log">LOG</span>
                         <span class="pill" data-filter="warn">WARN</span>
                         <span class="pill" data-filter="error">ERR</span>
                     </div>
-                    <div class="traffic-btn btn-yellow" id="console-minimize">
+                    <span class="text-btn" id="console-copy" data-show="desktop">copy</span>
+                    <span class="text-btn" id="console-clear" data-show="desktop">clear</span>
+                </div>
+                <div class="controls">
+                    <div data-show="mobile" style="display:flex;gap:4px">
+                        <span class="pill" data-mobile-view="preview">PREVIEW</span>
+                        <span class="pill" data-mobile-view="code">CODE</span>
+                    </div>
+                    <div class="traffic-btn btn-yellow" data-show="desktop" data-action="console-collapse">
                         <svg viewBox="0 0 10 10"><path d="M2,5 L8,5"/></svg>
                     </div>
-                    <div class="traffic-btn btn-green" id="console-fullscreen">
+                    <div class="traffic-btn btn-green" data-show="desktop" data-action="console-fullscreen">
                         <svg viewBox="0 0 10 10"><path d="M5,2 L5,8 M2,5 L8,5"/></svg>
-                    </div>
-                    <div class="traffic-btn btn-red" id="console-exit-fullscreen" style="display:none">
-                        <svg viewBox="0 0 10 10"><path d="M2,2 L8,8 M8,2 L2,8"/></svg>
                     </div>
                 </div>
             </div>
@@ -620,8 +764,30 @@ document.querySelector('button').onclick = () => {
         fullscreen: null,
         minimized: { html: false, css: false, js: false },
         heights: { html: 200, css: 200, js: 200 },
-        clipboard: null  // { type: 'share' | 'code' | 'console' | 'console-entry', lang?: string, entryIndex?: number } or null
+        clipboard: null,  // { type: 'share' | 'code' | 'console' | 'console-entry', lang?: string, entryIndex?: number } or null
+        mobileView: 'code',  // 'code' | 'preview' | 'console' - which view is active on mobile
+        layout: 'auto'  // 'auto' | 'mobile' | 'desktop' - layout mode
     };
+
+    // Layout detection
+    const mobileQuery = window.matchMedia('(max-width: 600px)');
+    function isMobile() {
+        if (state.layout === 'mobile') return true;
+        if (state.layout === 'desktop') return false;
+        return mobileQuery.matches;
+    }
+    
+    // Update body classes based on current layout state
+    function updateLayoutClasses() {
+        const mobile = isMobile();
+        document.body.classList.toggle('layout-mobile', mobile);
+        document.body.classList.toggle('layout-desktop', !mobile);
+        
+        // View classes only apply in mobile layout
+        document.body.classList.toggle('view-code', mobile && state.mobileView === 'code');
+        document.body.classList.toggle('view-preview', mobile && state.mobileView === 'preview');
+        document.body.classList.toggle('view-console', mobile && state.mobileView === 'console');
+    }
 
     // Console state
     const consoleState = {
@@ -678,7 +844,7 @@ document.querySelector('button').onclick = () => {
             while (toShrink > 0) {
                 const shrinkable = openPanels.filter(p => state.heights[p] > MIN_H);
                 if (shrinkable.length === 0) break;
-                
+
                 const perPanel = Math.ceil(toShrink / shrinkable.length);
                 for (const p of shrinkable) {
                     const canTake = Math.min(perPanel, state.heights[p] - MIN_H, toShrink);
@@ -700,7 +866,7 @@ document.querySelector('button').onclick = () => {
         const available = usable - totalGaps;
         const heightPerPanel = Math.floor(available / PANELS.length);
         const remainder = available - (heightPerPanel * PANELS.length);
-        
+
         PANELS.forEach((p, i) => {
             state.heights[p] = heightPerPanel;
             // Give remainder to last panel
@@ -713,19 +879,30 @@ document.querySelector('button').onclick = () => {
     // Render: derive DOM from state
     function render() {
         const maxW = window.innerWidth;
+        const mobile = isMobile();
 
-        // Handle sidebar collapsed
-        if (state.collapsed) {
+        // Update layout classes on body
+        updateLayoutClasses();
+        
+        // Force fullscreen/tabbed mode on mobile - default to HTML if nothing selected
+        if (mobile && !state.fullscreen) {
+            state.fullscreen = 'html';
+        }
+
+        // Handle sidebar collapsed (desktop only)
+        if (!mobile && state.collapsed) {
             dom.sidebar.classList.add('hidden');
             dom.strip.style.display = 'block';
         } else {
             dom.sidebar.classList.remove('hidden');
-            dom.strip.style.display = 'none';
-            dom.sidebar.style.width = `${state.sidebarWidth}px`;
+            dom.strip.style.display = mobile ? 'none' : 'none';
+            if (!mobile) {
+                dom.sidebar.style.width = `${state.sidebarWidth}px`;
+            }
         }
 
-        // Handle preview collapsed
-        if (state.previewCollapsed) {
+        // Handle preview collapsed (desktop only)
+        if (!mobile && state.previewCollapsed) {
             dom.previewContainer.classList.add('hidden');
             dom.previewStrip.style.display = 'block';
         } else {
@@ -733,8 +910,8 @@ document.querySelector('button').onclick = () => {
             dom.previewStrip.style.display = 'none';
         }
 
-        // Early return if sidebar is collapsed
-        if (state.collapsed) return;
+        // Early return if sidebar is collapsed (desktop only)
+        if (!mobile && state.collapsed) return;
 
         if (state.fullscreen) {
             dom.sidebar.classList.add('fullscreen-mode');
@@ -745,6 +922,11 @@ document.querySelector('button').onclick = () => {
                 box.querySelector('.btn-red').style.display = isActive ? 'flex' : 'none';
                 box.querySelector('.btn-green').style.display = isActive ? 'none' : 'flex';
                 box.querySelector('.btn-yellow').style.display = isActive ? 'none' : 'flex';
+
+                // Update fs-nav pill active states
+                box.querySelectorAll('.fs-nav .pill').forEach(pill => {
+                    pill.classList.toggle('active', pill.dataset.panel === state.fullscreen);
+                });
             });
         } else {
             dom.sidebar.classList.remove('fullscreen-mode');
@@ -772,6 +954,13 @@ document.querySelector('button').onclick = () => {
         requestAnimationFrame(() => {
             Object.values(editors).forEach(cm => cm.refresh());
         });
+
+        // Layout button - shows what clicking will toggle TO
+        const layoutBtn = document.getElementById('layout-btn');
+        const currentlyMobile = isMobile();
+        layoutBtn.textContent = currentlyMobile ? 'DESKTOP' : 'MOBILE';
+        // Show active state when layout is forced (not auto)
+        layoutBtn.classList.toggle('active', state.layout !== 'auto');
 
         // Clipboard button states
         const shareBtn = document.getElementById('share-btn');
@@ -854,7 +1043,8 @@ document.querySelector('button').onclick = () => {
     }
 
     function switchFullscreenPanel(panel) {
-        if (state.fullscreen) {
+        // On mobile or in fullscreen mode, switch to the requested panel
+        if (state.fullscreen || isMobile()) {
             state.fullscreen = panel;
             render();
         }
@@ -875,40 +1065,40 @@ document.querySelector('button').onclick = () => {
         if (delta < 0) {
             // Dragging up: grow this panel by taking from panels above
             let toGrow = -delta;
-            
+
             // Take space from panels above, starting from nearest
             for (let i = panelIdx - 1; i >= 0 && toGrow > 0; i--) {
                 const p = PANELS[i];
                 if (startState.minimized[p]) continue;
-                
+
                 const canTake = newState.heights[p] - MIN_H;
                 const take = Math.min(canTake, toGrow);
                 newState.heights[p] -= take;
                 toGrow -= take;
             }
-            
+
             // Grow this panel by amount we took
             newState.heights[draggedPanel] = startState.heights[draggedPanel] + (-delta - toGrow);
-            
+
         } else if (delta > 0) {
             // Dragging down: shrink this panel AND push panels below
             // First, shrink this panel
             const canShrink = startState.heights[draggedPanel] - MIN_H;
             const shrinkSelf = Math.min(canShrink, delta);
             newState.heights[draggedPanel] = startState.heights[draggedPanel] - shrinkSelf;
-            
+
             // Remaining delta pushes panels below (shrinks them)
             let remaining = delta - shrinkSelf;
             for (let i = panelIdx + 1; i < PANELS.length && remaining > 0; i++) {
                 const p = PANELS[i];
                 if (startState.minimized[p]) continue;
-                
+
                 const canTake = newState.heights[p] - MIN_H;
                 const take = Math.min(canTake, remaining);
                 newState.heights[p] -= take;
                 remaining -= take;
             }
-            
+
             // Give the freed space to the panel above
             const freedSpace = delta - remaining;
             for (let i = panelIdx - 1; i >= 0; i--) {
@@ -995,6 +1185,16 @@ document.querySelector('button').onclick = () => {
                 const panel = btn.dataset.panel;
                 if (action === 'minimize') toggleMinimize(panel);
                 else if (action === 'fullscreen' || action === 'exit-fullscreen') toggleFullscreen(panel);
+                else if (action === 'console-collapse') {
+                    consoleState.expanded = !consoleState.expanded;
+                    consoleState.fullscreen = false;
+                    renderConsole();
+                }
+                else if (action === 'console-fullscreen') {
+                    consoleState.fullscreen = !consoleState.fullscreen;
+                    consoleState.expanded = true;
+                    renderConsole();
+                }
             });
         });
 
@@ -1021,6 +1221,22 @@ document.querySelector('button').onclick = () => {
                 Object.values(editors).forEach(cm => cm.setOption('keyMap', keymap));
                 document.querySelectorAll('.mode-switcher .pill').forEach(t => t.classList.remove('active'));
                 tag.classList.add('active');
+            });
+        });
+
+        document.getElementById('layout-btn').addEventListener('click', () => {
+            // Toggle to the opposite layout, or back to auto if already forced
+            const currentlyMobile = isMobile();
+            if (state.layout === 'auto') {
+                // Force to opposite of current
+                state.layout = currentlyMobile ? 'desktop' : 'mobile';
+            } else {
+                // Return to auto
+                state.layout = 'auto';
+            }
+            render();
+            requestAnimationFrame(() => {
+                Object.values(editors).forEach(cm => cm.refresh());
             });
         });
 
@@ -1057,7 +1273,7 @@ document.querySelector('button').onclick = () => {
                 const time = new Date(entry.timestamp).toLocaleTimeString('en-US', { hour12: false });
                 return `[${time}] [${entry.type.toUpperCase()}] ${entry.message}`;
             }).join('\n');
-            
+
             await copyToClipboard(text);
             state.clipboard = { type: 'console' };
             render();
@@ -1074,25 +1290,7 @@ document.querySelector('button').onclick = () => {
             render();
         });
 
-        document.getElementById('console-minimize').addEventListener('click', (e) => {
-            e.stopPropagation();
-            consoleState.expanded = !consoleState.expanded;
-            consoleState.fullscreen = false;
-            renderConsole();
-        });
 
-        document.getElementById('console-fullscreen').addEventListener('click', (e) => {
-            e.stopPropagation();
-            consoleState.fullscreen = true;
-            consoleState.expanded = true;
-            renderConsole();
-        });
-
-        document.getElementById('console-exit-fullscreen').addEventListener('click', (e) => {
-            e.stopPropagation();
-            consoleState.fullscreen = false;
-            renderConsole();
-        });
 
         document.querySelectorAll('.console-filters .pill').forEach(filter => {
             filter.addEventListener('click', (e) => {
@@ -1110,7 +1308,7 @@ document.querySelector('button').onclick = () => {
                 jumpToLine(line);
                 return;
             }
-            
+
             // Click on type badge to copy that entry
             const typeEl = e.target.closest('.console-type');
             if (typeEl) {
@@ -1171,6 +1369,26 @@ document.querySelector('button').onclick = () => {
 
         window.addEventListener('resize', () => {
             enforceConstraints();
+            render();
+        });
+
+        // Mobile view navigation pills
+        document.querySelectorAll('[data-mobile-view]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                state.mobileView = btn.dataset.mobileView;
+                render();
+                // Refresh editors when switching to code view
+                if (state.mobileView === 'code') {
+                    requestAnimationFrame(() => {
+                        Object.values(editors).forEach(cm => cm.refresh());
+                    });
+                }
+            });
+        });
+
+        // Listen for media query changes to handle orientation/resize
+        mobileQuery.addEventListener('change', () => {
             render();
         });
     }
@@ -1384,21 +1602,21 @@ document.querySelector('button').onclick = () => {
         newFrame.onload = () => {
             // Only swap if this is still the current pending frame
             if (pendingFrame !== newFrame) return;
-            
+
             // Wait for render to complete (requestAnimationFrame x2 for paint)
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     if (pendingFrame !== newFrame) return;
-                    
+
                     // Make new frame visible
                     newFrame.classList.remove('loading');
                     newFrame.classList.add('ready');
-                    
+
                     // Remove old iframe
                     if (oldFrame && oldFrame !== newFrame) {
                         oldFrame.remove();
                     }
-                    
+
                     // Update reference
                     dom.preview = newFrame;
                     pendingFrame = null;
@@ -1480,22 +1698,30 @@ document.querySelector('button').onclick = () => {
         const lineIndex = line - 1;
         const cm = editors.js;
 
-        // Expand sidebar if collapsed
+        // On mobile, switch to code view
+        if (isMobile()) {
+            state.mobileView = 'code';
+        }
+
+        // Expand sidebar if collapsed (desktop)
         if (state.collapsed) {
             state.collapsed = false;
-            render();
         }
 
-        // Switch to JS panel if in fullscreen
-        if (state.fullscreen && state.fullscreen !== 'js') {
+        // Switch to JS panel
+        if (state.fullscreen !== 'js') {
             state.fullscreen = 'js';
-            render();
         }
 
-        // Focus and scroll to line
-        cm.focus();
-        cm.setCursor({ line: lineIndex, ch: 0 });
-        cm.scrollIntoView({ line: lineIndex, ch: 0 }, 100);
+        render();
+
+        // Focus and scroll to line (after render to ensure visibility)
+        requestAnimationFrame(() => {
+            cm.refresh();
+            cm.focus();
+            cm.setCursor({ line: lineIndex, ch: 0 });
+            cm.scrollIntoView({ line: lineIndex, ch: 0 }, 100);
+        });
     }
 
     function formatTime(timestamp) {
@@ -1507,9 +1733,6 @@ document.querySelector('button').onclick = () => {
         const panel = document.getElementById('console-panel');
         const body = document.getElementById('console-body');
         const badge = document.getElementById('console-badge');
-        const minimizeBtn = document.getElementById('console-minimize');
-        const fullscreenBtn = document.getElementById('console-fullscreen');
-        const exitFullscreenBtn = document.getElementById('console-exit-fullscreen');
 
         if (!panel) return;
 
@@ -1525,13 +1748,6 @@ document.querySelector('button').onclick = () => {
             panel.style.height = `${HEADER_H}px`;
             panel.classList.add('collapsed');
             panel.classList.remove('fullscreen');
-        }
-
-        // Update button visibility
-        if (minimizeBtn && fullscreenBtn && exitFullscreenBtn) {
-            minimizeBtn.style.display = 'flex';
-            fullscreenBtn.style.display = consoleState.fullscreen ? 'none' : 'flex';
-            exitFullscreenBtn.style.display = consoleState.fullscreen ? 'flex' : 'none';
         }
 
         // Update badge
@@ -1573,12 +1789,12 @@ document.querySelector('button').onclick = () => {
                 const countBadge = entry.count > 1
                     ? `<span class="console-count">${entry.count}</span>`
                     : '';
-                
+
                 // Check if this entry is the currently copied one
-                const isCopied = state.clipboard?.type === 'console-entry' && 
+                const isCopied = state.clipboard?.type === 'console-entry' &&
                     state.clipboard.entryIndex === entry.originalIndex;
                 const typeLabel = isCopied ? `COPIED ${entry.type.toUpperCase()}` : entry.type.toUpperCase();
-                
+
                 return `
                     <div class="console-entry ${entry.type}" data-index="${entry.originalIndex}">
                         <span class="console-time">${formatTime(entry.timestamp)}</span>
@@ -1636,7 +1852,7 @@ document.querySelector('button').onclick = () => {
             if (!line && e.data.line) {
                 line = e.data.line;
             }
-            
+
             consoleState.entries.push({ ...e.data, line });
             renderConsole();
 
