@@ -13,15 +13,29 @@
     <title>AeroCode</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/neat.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.css">
     <style>
         :root {
-            --glass-border: 1px solid rgba(255, 255, 255, 0.6);
-            --bg-grad: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            --sidebar-bg: rgba(255, 255, 255, 0.35);
+            /* Colors */
+            --accent: #0078d7;
+            --accent-hover: #005a9e;
+            --accent-border: #0066b8;
+            --text: #333;
+            --text-muted: #666;
+            --text-faint: #999;
+            --border-light: rgba(255, 255, 255, 0.9);
+            --border-dark: rgba(0, 0, 0, 0.08);
+            --bg-glass: rgba(255, 255, 255, 0.75);
+            --bg-content: rgba(255, 255, 255, 0.5);
+            --bg-header: linear-gradient(to bottom, #fff 0%, #f1f1f1 100%);
+            --shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+            /* Layout */
             --header-height: 28px;
-            --toolbar-height: 32px;
             --gap: 8px;
             --radius: 10px;
+            /* Fonts */
+            --font-mono: 'Menlo', 'Consolas', monospace;
+            --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
         * { box-sizing: border-box; }
@@ -31,14 +45,92 @@
             height: 100vh;
             display: flex;
             overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family: var(--font-ui);
             background:
                 radial-gradient(circle at 10% 10%, rgba(255,255,255,0.8) 0%, transparent 40%),
-                var(--bg-grad);
+                linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
         }
 
         .hidden { display: none !important; }
 
+        /* Shared header bar style */
+        .header-bar {
+            height: var(--header-height);
+            min-height: var(--header-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 8px;
+            background: var(--bg-header);
+            user-select: none;
+            flex-shrink: 0;
+        }
+
+        /* Shared panel style */
+        .panel {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 0 #fff;
+        }
+
+        .controls { display: flex; gap: 6px; align-items: center; }
+
+        /* Small text button (copy, clear) */
+        .text-btn {
+            font-size: 9px;
+            color: var(--text-faint);
+            cursor: pointer;
+            margin-left: 8px;
+            opacity: 0.6;
+        }
+        .text-btn:hover { opacity: 1; color: var(--text-muted); }
+        .text-btn.active { color: var(--accent); opacity: 1; }
+
+        /* Pill button (mode tags, filters) */
+        .pill {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            color: var(--text-muted);
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .pill:hover { background: rgba(0, 0, 0, 0.1); color: var(--text); }
+        .pill.active { background: var(--accent); color: white; }
+
+        /* Traffic light buttons */
+        .traffic-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .traffic-btn svg { width: 8px; height: 8px; opacity: 0; }
+        .traffic-btn:hover svg { opacity: 0.6; }
+        .traffic-btn path { stroke: #000; stroke-width: 1.5; stroke-linecap: round; }
+        .btn-yellow { background: #ffbd2e; border-color: #d6a12d; }
+        .btn-green { background: #27c93f; border-color: #21a132; }
+        .btn-red { background: #ff5f57; border-color: #e0443e; }
+
+        /* Drag overlay */
         #drag-overlay {
             position: fixed;
             inset: 0;
@@ -46,6 +138,7 @@
             display: none;
         }
 
+        /* Sidebar strips */
         .sidebar-strip, .preview-strip {
             width: 16px;
             height: 100vh;
@@ -59,14 +152,16 @@
         .preview-strip { border-left: 1px solid rgba(0, 120, 215, 0.8); flex-shrink: 0; }
         .sidebar-strip:hover, .preview-strip:hover { background: rgba(0, 120, 215, 0.8); }
 
+        /* Sidebar */
         .sidebar {
             display: flex;
             flex-direction: column;
-            background: var(--sidebar-bg);
+            background: rgba(255, 255, 255, 0.35);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-right: var(--glass-border);
+            border-right: 1px solid rgba(255, 255, 255, 0.6);
             padding: var(--gap);
+            padding-bottom: 0;
             z-index: 10;
             position: relative;
             flex-shrink: 0;
@@ -82,74 +177,28 @@
             z-index: 50;
         }
 
+        /* Editor boxes */
         .editor-box {
             position: absolute;
             left: var(--gap);
             right: var(--gap);
-            background: rgba(255, 255, 255, 0.75);
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            border-radius: var(--radius);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
         }
-
-        .editor-header {
-            height: var(--header-height);
-            min-height: var(--header-height);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 8px;
-            background: linear-gradient(to bottom, #fff 0%, #f1f1f1 100%);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-            user-select: none;
-            flex-shrink: 0;
-        }
-
-        .label {
-            font-size: 11px;
-            font-weight: 700;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            text-shadow: 0 1px 0 #fff;
-        }
+        .editor-box .header-bar { border-bottom: 1px solid var(--border-dark); }
 
         .editor-content {
             flex: 1;
             position: relative;
             overflow: hidden;
-            background: rgba(255, 255, 255, 0.5);
+            background: var(--bg-content);
         }
 
-        .controls { display: flex; gap: 6px; align-items: center; }
-
-        .traffic-btn {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-        .traffic-btn svg { width: 8px; height: 8px; opacity: 0; }
-        .traffic-btn:hover svg { opacity: 0.6; }
-        .traffic-btn path { stroke: #000; stroke-width: 1.5; stroke-linecap: round; }
-
-        .btn-yellow { background: #ffbd2e; border-color: #d6a12d; }
-        .btn-green { background: #27c93f; border-color: #21a132; }
-        .btn-red { background: #ff5f57; border-color: #e0443e; }
-
+        /* Editor fullscreen mode */
         .sidebar.fullscreen-mode .editor-box { display: none; }
         .sidebar.fullscreen-mode .editor-box.fs-active {
             display: flex;
             position: absolute;
             top: var(--gap) !important;
-            bottom: calc(var(--toolbar-height) + var(--gap) + var(--gap)) !important;
+            bottom: calc(var(--header-height) + var(--gap)) !important;
             height: auto !important;
             z-index: 100;
         }
@@ -157,82 +206,211 @@
         .fs-nav { display: none; align-items: center; gap: 4px; }
         .fullscreen-mode .fs-nav { display: flex; }
 
-        .fs-tag {
-            font-size: 10px;
-            font-weight: bold;
-            background: rgba(0, 0, 0, 0.05);
-            padding: 3px 8px;
-            border-radius: 12px;
-            color: #666;
-            cursor: pointer;
-        }
-        .fs-tag:hover { background: rgba(0, 0, 0, 0.1); color: #333; }
-        .fs-tag.active { background: #0078d7; color: white; }
+        .mode-switcher { display: flex; gap: 4px; }
 
-        .CodeMirror {
+        /* Bottom toolbar */
+        .bottom-toolbar {
             position: absolute;
-            inset: 0;
-            height: 100% !important;
-            background: transparent !important;
-            font-family: 'Menlo', 'Consolas', monospace;
-            font-size: 12px;
-            line-height: 1.4;
-        }
-        .CodeMirror-gutters {
-            background: rgba(245, 245, 245, 0.95) !important;
-            border-right: 1px solid rgba(0, 0, 0, 0.06) !important;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            border-top: 1px solid var(--border-dark);
+            z-index: 50;
         }
 
+        /* Preview area */
         .preview {
             flex: 1;
             min-width: 0;
             background: white;
             position: relative;
             overflow: hidden;
-        }
-        .preview iframe { width: 100%; height: 100%; border: none; }
-
-        .bottom-toolbar {
-            position: absolute;
-            bottom: var(--gap);
-            left: var(--gap);
-            right: var(--gap);
-            height: var(--toolbar-height);
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0;
-            z-index: 50;
+            flex-direction: column;
+        }
+        .preview iframe {
+            width: 100%;
+            flex: 1;
+            min-height: 0;
+            border: none;
+            background: white;
+        }
+        .preview iframe.loading {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .preview iframe.ready {
+            opacity: 1;
+            z-index: 2;
+        }
+        .preview iframe.old {
+            z-index: 1;
         }
 
-        .mode-switcher { display: flex; gap: 4px; }
-
-        .mode-tag, .share-btn {
-            font-size: 10px;
-            font-weight: bold;
-            background: rgba(255, 255, 255, 0.5);
-            padding: 4px 10px;
-            border-radius: 12px;
-            color: #666;
-            cursor: pointer;
-            border: 1px solid rgba(255, 255, 255, 0.6);
+        /* Console panel */
+        .console-panel {
+            border-top: 1px solid var(--border-dark);
+            border-bottom: none;
+            border-left: none;
+            border-right: none;
+            border-radius: 0;
+            box-shadow: none;
+            flex-shrink: 0;
         }
-        .mode-tag:hover, .share-btn:hover { background: rgba(255, 255, 255, 0.7); color: #333; }
-        .mode-tag.active { background: #0078d7; color: white; border-color: #0066b8; }
-        .share-btn { background: #0078d7; color: white; border-color: #0066b8; }
-        .share-btn:hover { background: #005a9e; color: white; }
-        .share-btn.copied { background: rgba(255, 255, 255, 0.5); color: #666; border-color: rgba(255, 255, 255, 0.6); }
-        .share-btn.copied:hover { background: rgba(255, 255, 255, 0.7); color: #333; }
+        .console-panel .header-bar {
+            cursor: row-resize;
+            border-bottom: 1px solid var(--border-dark);
+        }
+        .console-panel.collapsed .console-body { display: none; }
+        .console-panel.fullscreen {
+            flex: 1 1 auto;
+            border-radius: 0;
+        }
+        .preview:has(.console-panel.fullscreen) iframe { display: none; }
 
-        .copy-btn {
+        .console-badge {
+            background: rgba(0, 0, 0, 0.1);
+            color: var(--text-muted);
+            font-family: var(--font-ui);
             font-size: 9px;
-            color: #999;
-            cursor: pointer;
-            margin-left: 8px;
-            opacity: 0.6;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 16px;
+            text-align: center;
+            margin-left: 6px;
         }
-        .copy-btn:hover { opacity: 1; color: #666; }
-        .copy-btn.copied { color: #0078d7; opacity: 1; }
+        .console-badge:empty { display: none; }
+        .console-badge.has-errors { background: #e74c3c; color: #fff; }
+
+        .console-filters { display: flex; gap: 4px; margin-right: 8px; }
+
+        .console-body {
+            flex: 1;
+            overflow-y: auto;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            line-height: 1.4;
+            background: var(--bg-content);
+        }
+
+        .console-entry {
+            padding: 4px 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .console-entry:hover { background: rgba(0, 0, 0, 0.02); }
+
+        .console-time { color: var(--text-faint); font-size: 10px; flex-shrink: 0; padding-top: 2px; }
+        .console-type { font-family: var(--font-ui); font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 10px; flex-shrink: 0; cursor: pointer; }
+        .console-type.log { background: rgba(0, 0, 0, 0.08); color: var(--text-muted); }
+        .console-type.info { background: #3498db; color: #fff; }
+        .console-type.warn { background: #f39c12; color: #fff; }
+        .console-type.error { background: #e74c3c; color: #fff; }
+        .console-type.copied { background: var(--accent); color: #fff; }
+
+        .console-message { color: var(--text); word-break: break-word; flex: 1; white-space: pre-wrap; }
+        .console-entry.warn .console-message { color: #b7791f; }
+        .console-entry.error .console-message { color: #c0392b; }
+
+        .console-line { color: var(--accent); cursor: pointer; flex-shrink: 0; font-size: 11px; }
+        .console-line:hover { text-decoration: underline; }
+
+        .console-count { background: var(--accent); color: #fff; font-family: var(--font-ui); font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 10px; margin-left: 6px; flex-shrink: 0; }
+
+        .console-empty { color: var(--text-faint); text-align: center; padding: 20px; font-style: italic; }
+
+        /* CodeMirror */
+        .CodeMirror {
+            position: absolute;
+            inset: 0;
+            height: 100% !important;
+            background: transparent !important;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .CodeMirror-gutters {
+            background: rgba(245, 245, 245, 0.95) !important;
+            border-right: 1px solid var(--border-dark) !important;
+        }
+
+        /* Code hints */
+        .CodeMirror-hints {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            padding: 4px 0;
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .CodeMirror-hint { padding: 4px 10px; color: var(--text); cursor: pointer; }
+        .CodeMirror-hint-active {
+            background: linear-gradient(to bottom, #7bbaf7 0%, #4096ee 100%);
+            color: white;
+            border-radius: 3px;
+            margin: 0 4px;
+        }
+
+        /* Error highlighting (runtime errors from console) */
+        .cm-error-line { background: rgba(231, 76, 60, 0.15) !important; }
+
+        /* Matched tag highlighting */
+        .CodeMirror-matchingtag { background: rgba(0, 120, 215, 0.15); }
+
+        /* Mobile: < 500px */
+        @media (max-width: 500px) {
+            /* Sidebar takes full width or is hidden */
+            .sidebar {
+                width: 100% !important;
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 100;
+            }
+            .sidebar.hidden {
+                display: none !important;
+            }
+
+            /* Always use fullscreen/tabbed mode */
+            .sidebar .editor-box { display: none; }
+            .sidebar .editor-box.fs-active {
+                display: flex;
+                position: absolute;
+                top: var(--gap) !important;
+                bottom: calc(var(--header-height) + var(--gap)) !important;
+                height: auto !important;
+            }
+            .sidebar .label { display: none; }
+            .sidebar .fs-nav { display: flex; }
+
+            /* Hide resizer on mobile */
+            .sidebar-resizer { display: none; }
+
+            /* Preview takes full space when sidebar closed */
+            .preview {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+            }
+
+            /* Hide strips on mobile - use the sidebar toggle instead */
+            .sidebar-strip, .preview-strip { display: none !important; }
+        }
     </style>
 </head>
 <body>
@@ -242,16 +420,16 @@
     <div id="sidebar" class="sidebar">
         <div class="sidebar-resizer" id="sidebar-resizer"></div>
 
-        <div class="editor-box" id="box-html">
-            <div class="editor-header" id="header-html">
+        <div class="editor-box panel" id="box-html">
+            <div class="header-bar" id="header-html">
                 <div style="display:flex;align-items:center">
                     <span class="label">HTML</span>
                     <div class="fs-nav">
-                        <span class="fs-tag active" data-panel="html">HTML</span>
-                        <span class="fs-tag" data-panel="css">CSS</span>
-                        <span class="fs-tag" data-panel="js">JS</span>
+                        <span class="pill active" data-panel="html">HTML</span>
+                        <span class="pill" data-panel="css">CSS</span>
+                        <span class="pill" data-panel="js">JS</span>
                     </div>
-                    <span class="copy-btn" data-lang="html">copy</span>
+                    <span class="text-btn" data-lang="html">copy</span>
                 </div>
                 <div class="controls">
                     <div class="traffic-btn btn-yellow" data-action="minimize" data-panel="html">
@@ -268,16 +446,16 @@
             <div class="editor-content"><textarea id="code-html"></textarea></div>
         </div>
 
-        <div class="editor-box" id="box-css">
-            <div class="editor-header" id="header-css">
+        <div class="editor-box panel" id="box-css">
+            <div class="header-bar" id="header-css">
                 <div style="display:flex;align-items:center">
                     <span class="label">CSS</span>
                     <div class="fs-nav">
-                        <span class="fs-tag" data-panel="html">HTML</span>
-                        <span class="fs-tag active" data-panel="css">CSS</span>
-                        <span class="fs-tag" data-panel="js">JS</span>
+                        <span class="pill" data-panel="html">HTML</span>
+                        <span class="pill active" data-panel="css">CSS</span>
+                        <span class="pill" data-panel="js">JS</span>
                     </div>
-                    <span class="copy-btn" data-lang="css">copy</span>
+                    <span class="text-btn" data-lang="css">copy</span>
                 </div>
                 <div class="controls">
                     <div class="traffic-btn btn-yellow" data-action="minimize" data-panel="css">
@@ -294,16 +472,16 @@
             <div class="editor-content"><textarea id="code-css"></textarea></div>
         </div>
 
-        <div class="editor-box" id="box-js">
-            <div class="editor-header" id="header-js">
+        <div class="editor-box panel" id="box-js">
+            <div class="header-bar" id="header-js">
                 <div style="display:flex;align-items:center">
                     <span class="label">JS</span>
                     <div class="fs-nav">
-                        <span class="fs-tag" data-panel="html">HTML</span>
-                        <span class="fs-tag" data-panel="css">CSS</span>
-                        <span class="fs-tag active" data-panel="js">JS</span>
+                        <span class="pill" data-panel="html">HTML</span>
+                        <span class="pill" data-panel="css">CSS</span>
+                        <span class="pill active" data-panel="js">JS</span>
                     </div>
-                    <span class="copy-btn" data-lang="js">copy</span>
+                    <span class="text-btn" data-lang="js">copy</span>
                 </div>
                 <div class="controls">
                     <div class="traffic-btn btn-yellow" data-action="minimize" data-panel="js">
@@ -320,20 +498,50 @@
             <div class="editor-content"><textarea id="code-js"></textarea></div>
         </div>
 
-        <div class="bottom-toolbar">
+        <div class="bottom-toolbar header-bar">
             <div class="mode-switcher">
-                <span class="mode-tag active" data-keymap="vim">VIM</span>
-                <span class="mode-tag" data-keymap="default">NORMAL</span>
+                <span class="pill active" data-keymap="vim">VIM</span>
+                <span class="pill" data-keymap="default">NORMAL</span>
             </div>
             <div style="display: flex; gap: 4px;">
-                <div class="share-btn" id="new-btn">NEW</div>
-                <div class="share-btn" id="share-btn">SHARE</div>
+                <span class="pill" id="new-btn">NEW</span>
+                <span class="pill" id="share-btn">SHARE</span>
             </div>
         </div>
     </div>
 
     <div id="preview-strip" class="preview-strip"></div>
-    <div class="preview"><iframe id="preview-frame"></iframe></div>
+    <div class="preview">
+        <iframe id="preview-frame" sandbox="allow-scripts allow-modals"></iframe>
+        <div id="console-panel" class="console-panel panel">
+            <div class="header-bar" id="console-header">
+                <div style="display:flex;align-items:center">
+                    <span class="label">CONSOLE</span>
+                    <span class="console-badge" id="console-badge"></span>
+                    <span class="text-btn" id="console-copy">copy</span>
+                    <span class="text-btn" id="console-clear">clear</span>
+                </div>
+                <div class="controls">
+                    <div class="console-filters">
+                        <span class="pill active" data-filter="all">ALL</span>
+                        <span class="pill" data-filter="log">LOG</span>
+                        <span class="pill" data-filter="warn">WARN</span>
+                        <span class="pill" data-filter="error">ERR</span>
+                    </div>
+                    <div class="traffic-btn btn-yellow" id="console-minimize">
+                        <svg viewBox="0 0 10 10"><path d="M2,5 L8,5"/></svg>
+                    </div>
+                    <div class="traffic-btn btn-green" id="console-fullscreen">
+                        <svg viewBox="0 0 10 10"><path d="M5,2 L5,8 M2,5 L8,5"/></svg>
+                    </div>
+                    <div class="traffic-btn btn-red" id="console-exit-fullscreen" style="display:none">
+                        <svg viewBox="0 0 10 10"><path d="M2,2 L8,8 M8,2 L2,8"/></svg>
+                    </div>
+                </div>
+            </div>
+            <div class="console-body" id="console-body"></div>
+        </div>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
@@ -341,23 +549,66 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/keymap/vim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/xml-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/html-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/css-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/javascript-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closetag.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closebrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/matchtags.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/xml-fold.min.js"></script>
 
     <script>
     // Layout constants
     const PANELS = ['html', 'css', 'js'];
     const HEADER_H = 28;
-    const MIN_H = 50;       // min panel height when open (header + 1.5 lines)
+    const MIN_H = 50;           // min editor panel height when open
+    const MIN_CONSOLE_H = 60;   // min console height (header + 1.5 lines)
     const COLLAPSED_H = HEADER_H;
     const GAP = 8;
-    const TOOLBAR_H = 32 + GAP;
-    const MIN_SIDEBAR_W = 300;
+    const TOOLBAR_H = HEADER_H;
+    const MIN_SIDEBAR_W = 350;
+    const MIN_PREVIEW_W = 350;
     const DEFAULT_SIDEBAR_W = 500;
     const STRIP_W = 16;
 
     const DEFAULTS = {
-        html: `<div class="wrapper">\n  <button class="gel-btn">Download<br>Aerocode</button>\n</div>`,
-        css: `body {\n  height: 100vh; margin: 0;\n  display: flex; justify-content: center; align-items: center;\n  background-image:\n    linear-gradient(#eee 1px, transparent 1px),\n    linear-gradient(90deg, #eee 1px, transparent 1px);\n  background-size: 20px 20px;\n  background-color: #fafafa;\n}\n\n.gel-btn {\n  font-family: -apple-system, sans-serif;\n  font-weight: 600; font-size: 14px;\n  color: #fff; text-shadow: 0 -1px 0 rgba(0,0,0,0.2);\n  padding: 8px 30px;\n  border: 1px solid #2e6da4; border-radius: 100px;\n  background: linear-gradient(to bottom, #7bbaf7 0%, #4096ee 100%);\n  box-shadow: 0 2px 5px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.4);\n  cursor: pointer;\n}\n\n.gel-btn:hover { filter: brightness(1.05); }`,
-        js: `document.querySelector('.gel-btn')?.addEventListener('click', () => {\n  const a = document.createElement('a');\n  a.href = 'https://slightknack.dev/aerocode.html';\n  a.download = 'aerocode.html';\n  a.click();\n});`
+        html: `<button>Download Aerocode</button>`,
+        css: `body {
+  height: 100vh;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  background: #fafafa;
+  background-image:
+    linear-gradient(#eee 1px, transparent 1px),
+    linear-gradient(90deg, #eee 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+button {
+  font: 600 14px system-ui;
+  color: #fff;
+  padding: 8px 30px;
+  border: 1px solid #2e6da4;
+  border-radius: 100px;
+  background: linear-gradient(#7bbaf7, #4096ee);
+  box-shadow: 0 2px 5px #0002;
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(1.05);
+}`,
+        js: `console.log("Welcome to Aerocode!");
+
+document.querySelector('button').onclick = () => {
+  const a = document.createElement('a');
+  a.href = 'https://slightknack.dev/aerocode.html';
+  a.download = 'aerocode.html';
+  a.click();
+};`
     };
 
     // Application state (declarative model)
@@ -365,11 +616,27 @@
         sidebarWidth: DEFAULT_SIDEBAR_W,
         prevSidebarWidth: DEFAULT_SIDEBAR_W,
         collapsed: false,
+        previewCollapsed: false,
         fullscreen: null,
         minimized: { html: false, css: false, js: false },
         heights: { html: 200, css: 200, js: 200 },
-        clipboard: null  // { type: 'share' | 'copy', lang?: string } or null
+        clipboard: null  // { type: 'share' | 'code' | 'console' | 'console-entry', lang?: string, entryIndex?: number } or null
     };
+
+    // Console state
+    const consoleState = {
+        entries: [],      // { type, message, timestamp, line?, col? }
+        expanded: true,   // panel open?
+        height: 150,      // panel height in px
+        filter: 'all',    // 'all' | 'log' | 'warn' | 'error'
+        fullscreen: false // fullscreen mode?
+    };
+
+    // Generation counter to ignore messages from stale iframe executions
+    let previewGeneration = 0;
+
+    // Store error line markers for clearing
+    let errorMarks = [];
 
     const dom = {};
     const editors = {};
@@ -395,47 +662,79 @@
 
         if (openPanels.length === 0) return;
 
-        let currentOpenTotal = openPanels.reduce((sum, p) => sum + state.heights[p], 0);
+        // Ensure minimum heights
+        openPanels.forEach(p => {
+            state.heights[p] = Math.max(MIN_H, state.heights[p]);
+        });
 
-        if (currentOpenTotal > spaceForOpen) {
-            // Shrink proportionally when too big
-            const scale = spaceForOpen / currentOpenTotal;
-            openPanels.forEach(p => {
-                state.heights[p] = Math.max(MIN_H, Math.floor(state.heights[p] * scale));
-            });
-        } else if (currentOpenTotal < spaceForOpen) {
-            // Grow proportionally when there's extra space
-            const extra = spaceForOpen - currentOpenTotal;
-            const perPanel = Math.floor(extra / openPanels.length);
-            openPanels.forEach(p => {
-                state.heights[p] += perPanel;
-            });
+        let currentOpenTotal = openPanels.reduce((sum, p) => sum + state.heights[p], 0);
+        const diff = spaceForOpen - currentOpenTotal;
+
+        if (diff === 0) return;
+
+        if (diff < 0) {
+            // Need to shrink - take from panels proportionally
+            let toShrink = -diff;
+            while (toShrink > 0) {
+                const shrinkable = openPanels.filter(p => state.heights[p] > MIN_H);
+                if (shrinkable.length === 0) break;
+                
+                const perPanel = Math.ceil(toShrink / shrinkable.length);
+                for (const p of shrinkable) {
+                    const canTake = Math.min(perPanel, state.heights[p] - MIN_H, toShrink);
+                    state.heights[p] -= canTake;
+                    toShrink -= canTake;
+                    if (toShrink <= 0) break;
+                }
+            }
+        } else {
+            // Need to grow - give extra to last open panel
+            const last = openPanels[openPanels.length - 1];
+            state.heights[last] += diff;
         }
     }
 
     function initializeHeights() {
         const usable = getUsableHeight();
         const totalGaps = (PANELS.length + 1) * GAP;
-        const heightPerPanel = Math.floor((usable - totalGaps) / PANELS.length);
-        PANELS.forEach(p => { state.heights[p] = heightPerPanel; });
+        const available = usable - totalGaps;
+        const heightPerPanel = Math.floor(available / PANELS.length);
+        const remainder = available - (heightPerPanel * PANELS.length);
+        
+        PANELS.forEach((p, i) => {
+            state.heights[p] = heightPerPanel;
+            // Give remainder to last panel
+            if (i === PANELS.length - 1) {
+                state.heights[p] += remainder;
+            }
+        });
     }
 
     // Render: derive DOM from state
     function render() {
         const maxW = window.innerWidth;
 
+        // Handle sidebar collapsed
         if (state.collapsed) {
             dom.sidebar.classList.add('hidden');
             dom.strip.style.display = 'block';
-            dom.previewStrip.style.display = 'none';
-            return;
+        } else {
+            dom.sidebar.classList.remove('hidden');
+            dom.strip.style.display = 'none';
+            dom.sidebar.style.width = `${state.sidebarWidth}px`;
         }
 
-        dom.sidebar.classList.remove('hidden');
-        dom.strip.style.display = 'none';
-        dom.sidebar.style.width = `${state.sidebarWidth}px`;
+        // Handle preview collapsed
+        if (state.previewCollapsed) {
+            dom.previewContainer.classList.add('hidden');
+            dom.previewStrip.style.display = 'block';
+        } else {
+            dom.previewContainer.classList.remove('hidden');
+            dom.previewStrip.style.display = 'none';
+        }
 
-        dom.previewStrip.style.display = (state.sidebarWidth >= maxW - STRIP_W - 10) ? 'block' : 'none';
+        // Early return if sidebar is collapsed
+        if (state.collapsed) return;
 
         if (state.fullscreen) {
             dom.sidebar.classList.add('fullscreen-mode');
@@ -477,23 +776,36 @@
         // Clipboard button states
         const shareBtn = document.getElementById('share-btn');
         if (state.clipboard?.type === 'share') {
-            shareBtn.classList.add('copied');
+            shareBtn.classList.add('active');
             shareBtn.textContent = 'COPIED URL';
         } else {
-            shareBtn.classList.remove('copied');
+            shareBtn.classList.remove('active');
             shareBtn.textContent = 'SHARE';
         }
 
-        document.querySelectorAll('.copy-btn').forEach(btn => {
+        document.querySelectorAll('.text-btn[data-lang]').forEach(btn => {
             const lang = btn.dataset.lang;
-            if (state.clipboard?.type === 'copy' && state.clipboard.lang === lang) {
+            if (state.clipboard?.type === 'code' && state.clipboard.lang === lang) {
                 btn.textContent = 'copied!';
-                btn.classList.add('copied');
+                btn.classList.add('active');
             } else {
                 btn.textContent = 'copy';
-                btn.classList.remove('copied');
+                btn.classList.remove('active');
             }
         });
+
+        // Console copy button state
+        const consoleCopyBtn = document.getElementById('console-copy');
+        if (state.clipboard?.type === 'console') {
+            consoleCopyBtn.textContent = 'copied!';
+            consoleCopyBtn.classList.add('active');
+        } else {
+            consoleCopyBtn.textContent = 'copy';
+            consoleCopyBtn.classList.remove('active');
+        }
+
+        // Re-render console to update copied entry state
+        renderConsole();
     }
 
     // Panel actions
@@ -548,7 +860,9 @@
         }
     }
 
-    // Drag computation: panels exchange space, no auto-collapse
+    // Drag computation: dragging a header moves it and pushes other panels
+    // Dragging up: grow this panel by shrinking panels above
+    // Dragging down: shrink this panel (and panels below get pushed/shrunk)
     function computeDragState(startState, draggedPanel, delta) {
         const panelIdx = PANELS.indexOf(draggedPanel);
         const newState = {
@@ -556,41 +870,52 @@
             heights: { ...startState.heights }
         };
 
-        const hasOpenPanelAbove = PANELS.slice(0, panelIdx).some(p => !startState.minimized[p]);
+        if (startState.minimized[draggedPanel]) return newState;
 
         if (delta < 0) {
-            if (!hasOpenPanelAbove) return newState;
-
-            let growAmount = -delta;
-
-            for (let i = panelIdx - 1; i >= 0 && growAmount > 0; i--) {
+            // Dragging up: grow this panel by taking from panels above
+            let toGrow = -delta;
+            
+            // Take space from panels above, starting from nearest
+            for (let i = panelIdx - 1; i >= 0 && toGrow > 0; i--) {
                 const p = PANELS[i];
-                if (newState.minimized[p]) continue;
-
-                const canShrink = newState.heights[p] - MIN_H;
-                const shrink = Math.min(canShrink, growAmount);
-                newState.heights[p] -= shrink;
-                growAmount -= shrink;
+                if (startState.minimized[p]) continue;
+                
+                const canTake = newState.heights[p] - MIN_H;
+                const take = Math.min(canTake, toGrow);
+                newState.heights[p] -= take;
+                toGrow -= take;
             }
-
-            const actualGrow = -delta - growAmount;
-            if (!startState.minimized[draggedPanel]) {
-                newState.heights[draggedPanel] += actualGrow;
-            }
+            
+            // Grow this panel by amount we took
+            newState.heights[draggedPanel] = startState.heights[draggedPanel] + (-delta - toGrow);
+            
         } else if (delta > 0) {
-            if (!hasOpenPanelAbove) return newState;
-
-            if (!startState.minimized[draggedPanel]) {
-                const canShrink = startState.heights[draggedPanel] - MIN_H;
-                const shrink = Math.min(canShrink, delta);
-                newState.heights[draggedPanel] = startState.heights[draggedPanel] - shrink;
-
-                for (let i = panelIdx - 1; i >= 0; i--) {
-                    const p = PANELS[i];
-                    if (newState.minimized[p]) continue;
-                    newState.heights[p] += shrink;
-                    break;
-                }
+            // Dragging down: shrink this panel AND push panels below
+            // First, shrink this panel
+            const canShrink = startState.heights[draggedPanel] - MIN_H;
+            const shrinkSelf = Math.min(canShrink, delta);
+            newState.heights[draggedPanel] = startState.heights[draggedPanel] - shrinkSelf;
+            
+            // Remaining delta pushes panels below (shrinks them)
+            let remaining = delta - shrinkSelf;
+            for (let i = panelIdx + 1; i < PANELS.length && remaining > 0; i++) {
+                const p = PANELS[i];
+                if (startState.minimized[p]) continue;
+                
+                const canTake = newState.heights[p] - MIN_H;
+                const take = Math.min(canTake, remaining);
+                newState.heights[p] -= take;
+                remaining -= take;
+            }
+            
+            // Give the freed space to the panel above
+            const freedSpace = delta - remaining;
+            for (let i = panelIdx - 1; i >= 0; i--) {
+                const p = PANELS[i];
+                if (startState.minimized[p]) continue;
+                newState.heights[p] = startState.heights[p] + freedSpace;
+                break;
             }
         }
 
@@ -606,40 +931,33 @@
             startDrag('col-resize', (em) => {
                 const newW = em.clientX;
                 const maxW = window.innerWidth;
+                const previewW = maxW - newW;
 
                 if (newW < 50) {
+                    // Snap sidebar closed
                     state.prevSidebarWidth = startWidth;
                     state.collapsed = true;
-                } else if (newW > maxW - 30) {
-                    state.prevSidebarWidth = startWidth;
+                    state.previewCollapsed = false;
+                } else if (previewW < 50) {
+                    // Snap preview closed
+                    state.previewCollapsed = true;
                     state.sidebarWidth = maxW - STRIP_W;
                 } else {
-                    state.sidebarWidth = Math.max(MIN_SIDEBAR_W, newW);
+                    state.collapsed = false;
+                    state.previewCollapsed = false;
+                    state.sidebarWidth = Math.max(MIN_SIDEBAR_W, Math.min(newW, maxW - MIN_PREVIEW_W));
                 }
                 render();
             });
         });
 
-        bindStripDrag(dom.strip, () => {
-            state.collapsed = false;
-            state.sidebarWidth = state.prevSidebarWidth;
-            render();
-        });
-
-        bindStripDrag(dom.previewStrip, () => {
-            const maxW = window.innerWidth;
-            if (state.prevSidebarWidth >= maxW - STRIP_W - 10) {
-                state.sidebarWidth = Math.min(DEFAULT_SIDEBAR_W, maxW * 0.4);
-            } else {
-                state.sidebarWidth = state.prevSidebarWidth;
-            }
-            render();
-        });
+        bindSidebarStripDrag();
+        bindPreviewStripDrag();
 
         PANELS.forEach(panel => {
             const header = document.getElementById(`header-${panel}`);
             header.addEventListener('mousedown', (e) => {
-                if (e.target.closest('.controls') || e.target.closest('.fs-nav') || e.target.closest('.copy-btn')) return;
+                if (e.target.closest('.controls') || e.target.closest('.fs-nav') || e.target.closest('.text-btn')) return;
                 e.preventDefault();
 
                 if (panel === 'html') {
@@ -680,43 +998,28 @@
             });
         });
 
-        document.querySelectorAll('.fs-tag').forEach(tag => {
+        document.querySelectorAll('.fs-nav .pill').forEach(tag => {
             tag.addEventListener('click', (e) => {
                 e.stopPropagation();
                 switchFullscreenPanel(tag.dataset.panel);
             });
         });
 
-        document.querySelectorAll('.copy-btn').forEach(btn => {
+        document.querySelectorAll('.text-btn[data-lang]').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
                 const lang = btn.dataset.lang;
-                const text = editors[lang].getValue();
-
-                try {
-                    await navigator.clipboard.writeText(text);
-                } catch (err) {
-                    const tmp = document.createElement('textarea');
-                    tmp.value = text;
-                    tmp.style.position = 'fixed';
-                    tmp.style.opacity = '0';
-                    document.body.appendChild(tmp);
-                    tmp.focus();
-                    tmp.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(tmp);
-                }
-
-                state.clipboard = { type: 'copy', lang };
+                await copyToClipboard(editors[lang].getValue());
+                state.clipboard = { type: 'code', lang };
                 render();
             });
         });
 
-        document.querySelectorAll('.mode-tag').forEach(tag => {
+        document.querySelectorAll('.mode-switcher .pill').forEach(tag => {
             tag.addEventListener('click', () => {
                 const keymap = tag.dataset.keymap;
                 Object.values(editors).forEach(cm => cm.setOption('keyMap', keymap));
-                document.querySelectorAll('.mode-tag').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.mode-switcher .pill').forEach(t => t.classList.remove('active'));
                 tag.classList.add('active');
             });
         });
@@ -742,24 +1045,128 @@
 
         document.getElementById('share-btn').addEventListener('click', async () => {
             await updateUrl();
-            const url = window.location.href;
-
-            try {
-                await navigator.clipboard.writeText(url);
-            } catch (err) {
-                const tmp = document.createElement('textarea');
-                tmp.value = url;
-                tmp.style.position = 'fixed';
-                tmp.style.opacity = '0';
-                document.body.appendChild(tmp);
-                tmp.focus();
-                tmp.select();
-                document.execCommand('copy');
-                document.body.removeChild(tmp);
-            }
-
+            await copyToClipboard(window.location.href);
             state.clipboard = { type: 'share' };
             render();
+        });
+
+        // Console panel event handlers
+        document.getElementById('console-copy').addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const text = consoleState.entries.map(entry => {
+                const time = new Date(entry.timestamp).toLocaleTimeString('en-US', { hour12: false });
+                return `[${time}] [${entry.type.toUpperCase()}] ${entry.message}`;
+            }).join('\n');
+            
+            await copyToClipboard(text);
+            state.clipboard = { type: 'console' };
+            render();
+        });
+
+        document.getElementById('console-clear').addEventListener('click', (e) => {
+            e.stopPropagation();
+            consoleState.entries = [];
+            clearErrorMarks();
+            // Clear clipboard if it was console-related
+            if (state.clipboard?.type === 'console' || state.clipboard?.type === 'console-entry') {
+                state.clipboard = null;
+            }
+            render();
+        });
+
+        document.getElementById('console-minimize').addEventListener('click', (e) => {
+            e.stopPropagation();
+            consoleState.expanded = !consoleState.expanded;
+            consoleState.fullscreen = false;
+            renderConsole();
+        });
+
+        document.getElementById('console-fullscreen').addEventListener('click', (e) => {
+            e.stopPropagation();
+            consoleState.fullscreen = true;
+            consoleState.expanded = true;
+            renderConsole();
+        });
+
+        document.getElementById('console-exit-fullscreen').addEventListener('click', (e) => {
+            e.stopPropagation();
+            consoleState.fullscreen = false;
+            renderConsole();
+        });
+
+        document.querySelectorAll('.console-filters .pill').forEach(filter => {
+            filter.addEventListener('click', (e) => {
+                e.stopPropagation();
+                consoleState.filter = filter.dataset.filter;
+                renderConsole();
+            });
+        });
+
+        // Console line click to jump to error, type badge click to copy
+        document.getElementById('console-body').addEventListener('click', async (e) => {
+            const lineEl = e.target.closest('.console-line');
+            if (lineEl) {
+                const line = parseInt(lineEl.dataset.line, 10);
+                jumpToLine(line);
+                return;
+            }
+            
+            // Click on type badge to copy that entry
+            const typeEl = e.target.closest('.console-type');
+            if (typeEl) {
+                const entryEl = e.target.closest('.console-entry');
+                const index = parseInt(entryEl.dataset.index, 10);
+                const entry = consoleState.entries[index];
+                if (entry) {
+                    await copyToClipboard(entry.message);
+                    state.clipboard = { type: 'console-entry', entryIndex: index, entryType: entry.type };
+                    render();
+                    renderConsole();
+                }
+            }
+        });
+
+        // Console header drag to resize (with snap-to-close and snap-to-fullscreen)
+        document.getElementById('console-header').addEventListener('mousedown', (e) => {
+            if (e.target.closest('.controls') || e.target.closest('.console-filters') || e.target.closest('.text-btn')) return;
+            e.preventDefault();
+            const startY = e.clientY;
+            const previewHeight = document.querySelector('.preview').clientHeight;
+            const startHeight = consoleState.fullscreen
+                ? previewHeight
+                : (consoleState.expanded ? consoleState.height : HEADER_H);
+            let isDrag = false;
+
+            startDrag('row-resize', (em) => {
+                const delta = startY - em.clientY;
+                if (Math.abs(delta) > 3) isDrag = true;
+                if (!isDrag) return;
+
+                const newHeight = startHeight + delta;
+
+                // Snap to fullscreen if dragged near top
+                if (newHeight > previewHeight - 50) {
+                    consoleState.fullscreen = true;
+                    consoleState.expanded = true;
+                }
+                // Snap closed if dragged below threshold
+                else if (newHeight < MIN_CONSOLE_H) {
+                    consoleState.expanded = false;
+                    consoleState.fullscreen = false;
+                } else {
+                    consoleState.expanded = true;
+                    consoleState.fullscreen = false;
+                    consoleState.height = newHeight;
+                }
+                renderConsole();
+            }, () => {
+                // Click without drag toggles expand
+                if (!isDrag) {
+                    consoleState.expanded = !consoleState.expanded;
+                    consoleState.fullscreen = false;
+                    renderConsole();
+                }
+            });
         });
 
         window.addEventListener('resize', () => {
@@ -786,11 +1193,11 @@
         window.addEventListener('mouseup', upHandler);
     }
 
-    function bindStripDrag(strip, onClickRestore) {
-        strip.addEventListener('mousedown', (e) => {
+    function bindSidebarStripDrag() {
+        dom.strip.addEventListener('mousedown', (e) => {
             e.preventDefault();
             const startX = e.clientX;
-            const startWidth = state.collapsed ? state.prevSidebarWidth : state.sidebarWidth;
+            const startWidth = state.prevSidebarWidth || DEFAULT_SIDEBAR_W;
             let isDrag = false;
 
             startDrag('col-resize', (em) => {
@@ -801,7 +1208,7 @@
                 const maxW = window.innerWidth;
 
                 if (newW < 50) {
-                    state.prevSidebarWidth = startWidth || DEFAULT_SIDEBAR_W;
+                    state.prevSidebarWidth = startWidth;
                     state.collapsed = true;
                 } else {
                     state.collapsed = false;
@@ -809,7 +1216,51 @@
                 }
                 render();
             }, () => {
-                if (!isDrag) onClickRestore();
+                if (!isDrag) {
+                    state.collapsed = false;
+                    state.sidebarWidth = state.prevSidebarWidth;
+                    render();
+                }
+            });
+        });
+    }
+
+    function bindPreviewStripDrag() {
+        dom.previewStrip.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            const startX = e.clientX;
+            const maxW = window.innerWidth;
+            let isDrag = false;
+
+            startDrag('col-resize', (em) => {
+                if (Math.abs(em.clientX - startX) > 3) isDrag = true;
+                if (!isDrag) return;
+
+                const newW = em.clientX;
+                const previewW = maxW - newW;
+
+                if (previewW < 50) {
+                    // Keep preview collapsed
+                    state.previewCollapsed = true;
+                    state.sidebarWidth = maxW - STRIP_W;
+                } else if (newW < 50) {
+                    // Snap sidebar closed, restore preview
+                    state.previewCollapsed = false;
+                    state.prevSidebarWidth = state.sidebarWidth;
+                    state.collapsed = true;
+                } else {
+                    // Restore preview
+                    state.previewCollapsed = false;
+                    state.sidebarWidth = Math.max(MIN_SIDEBAR_W, Math.min(newW, maxW - MIN_PREVIEW_W));
+                }
+                render();
+            }, () => {
+                if (!isDrag) {
+                    // Click to restore preview
+                    state.previewCollapsed = false;
+                    state.sidebarWidth = Math.min(state.sidebarWidth, maxW - MIN_PREVIEW_W);
+                    render();
+                }
             });
         });
     }
@@ -817,14 +1268,146 @@
     // Preview and URL state
     let urlTimeout = null;
 
+    function buildInterceptor(generation) {
+        return `
+(function() {
+    const GEN = ${generation};
+    const _log = console.log, _warn = console.warn,
+          _error = console.error, _info = console.info;
+
+    function send(type, args) {
+        try {
+            parent.postMessage({
+                source: 'aerocode-console',
+                gen: GEN,
+                type: type,
+                message: Array.from(args).map(a => {
+                    if (a === undefined) return 'undefined';
+                    if (a === null) return 'null';
+                    if (typeof a === 'object') {
+                        try { return JSON.stringify(a, null, 2); }
+                        catch { return String(a); }
+                    }
+                    return String(a);
+                }).join(' '),
+                timestamp: Date.now()
+            }, '*');
+        } catch(e) {}
+    }
+
+    console.log = function() { _log.apply(console, arguments); send('log', arguments); };
+    console.warn = function() { _warn.apply(console, arguments); send('warn', arguments); };
+    console.error = function() { _error.apply(console, arguments); send('error', arguments); };
+    console.info = function() { _info.apply(console, arguments); send('info', arguments); };
+
+    window.onerror = function(msg, url, line, col, err) {
+        parent.postMessage({
+            source: 'aerocode-console',
+            gen: GEN,
+            type: 'error',
+            message: msg + (err && err.stack ? '\\n' + err.stack : ''),
+            timestamp: Date.now(),
+            line: line,
+            col: col
+        }, '*');
+        return false;
+    };
+
+    window.addEventListener('unhandledrejection', function(e) {
+        parent.postMessage({
+            source: 'aerocode-console',
+            gen: GEN,
+            type: 'error',
+            message: 'Unhandled Promise Rejection: ' + (e.reason ? e.reason.message || e.reason : 'Unknown'),
+            timestamp: Date.now()
+        }, '*');
+    });
+})();`;
+    }
+
+    // Track pending iframe to cancel if new update comes in
+    let pendingFrame = null;
+
     function updatePreview() {
+        // Increment generation to ignore messages from previous iframe executions
+        const generation = ++previewGeneration;
+
+        // Clear previous console entries and error marks
+        consoleState.entries = [];
+        clearErrorMarks();
+        renderConsole();
+
+        // Cancel any pending iframe that hasn't loaded yet
+        if (pendingFrame) {
+            pendingFrame.remove();
+            pendingFrame = null;
+        }
+
         const html = editors.html.getValue();
-        const css = `<style>${editors.css.getValue()}</style>`;
-        const js = `<script>${editors.js.getValue()}<\/script>`;
-        const doc = dom.preview.contentDocument || dom.preview.contentWindow.document;
-        doc.open();
-        doc.write(html + css + js);
-        doc.close();
+        const css = editors.css.getValue();
+        const js = editors.js.getValue();
+
+        // Build full document - use regular script (not module) so window.onerror catches errors
+        const doc = ['<!DOCTYPE html>',
+            '<html>',
+            '<head>',
+            '<style>' + css + '</style>',
+            '<script>' + buildInterceptor(generation) + '<\/script>',
+            '</head>',
+            '<body>',
+            html,
+            '<script>',
+            '//# sourceURL=usercode.js',
+            js,
+            '<\/script>',
+            '</body>',
+            '</html>'
+        ].join('\n');
+
+        // Double-buffer: create new iframe, load content, swap when ready
+        const newFrame = document.createElement('iframe');
+        newFrame.sandbox = 'allow-scripts allow-modals';
+        newFrame.className = 'loading';
+        pendingFrame = newFrame;
+
+        // Mark old iframe
+        if (dom.preview) {
+            dom.preview.classList.add('old');
+        }
+        const oldFrame = dom.preview;
+
+        // Insert before console panel
+        const consolePanel = document.getElementById('console-panel');
+        dom.previewContainer.insertBefore(newFrame, consolePanel);
+
+        // When loaded, wait a frame for render, then swap
+        newFrame.onload = () => {
+            // Only swap if this is still the current pending frame
+            if (pendingFrame !== newFrame) return;
+            
+            // Wait for render to complete (requestAnimationFrame x2 for paint)
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if (pendingFrame !== newFrame) return;
+                    
+                    // Make new frame visible
+                    newFrame.classList.remove('loading');
+                    newFrame.classList.add('ready');
+                    
+                    // Remove old iframe
+                    if (oldFrame && oldFrame !== newFrame) {
+                        oldFrame.remove();
+                    }
+                    
+                    // Update reference
+                    dom.preview = newFrame;
+                    pendingFrame = null;
+                });
+            });
+        };
+
+        // Set content (triggers load)
+        newFrame.srcdoc = doc;
 
         scheduleUrlUpdate();
     }
@@ -852,7 +1435,7 @@
 
     async function loadFromHash() {
         const hash = location.hash.slice(1);
-        if (!hash) return;
+        if (!hash) return false;
         try {
             const bytes = Uint8Array.from(atob(hash), c => c.charCodeAt(0));
             const json = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
@@ -866,14 +1449,210 @@
             if (data.f !== undefined) state.fullscreen = data.f || null;
 
             render();
-        } catch (e) {}
+            return true;
+        } catch (e) {
+            return false;
+        }
     }
+
+    // Console functions
+    function clearErrorMarks() {
+        errorMarks.forEach(mark => mark.clear());
+        errorMarks = [];
+    }
+
+    function markErrorLine(line) {
+        if (!line || line < 1) return;
+        const lineIndex = line - 1; // CodeMirror uses 0-based indexing
+        const cm = editors.js;
+        if (lineIndex >= cm.lineCount()) return;
+
+        const mark = cm.markText(
+            { line: lineIndex, ch: 0 },
+            { line: lineIndex, ch: cm.getLine(lineIndex).length },
+            { className: 'cm-error-line' }
+        );
+        errorMarks.push(mark);
+    }
+
+    function jumpToLine(line) {
+        if (!line || line < 1) return;
+        const lineIndex = line - 1;
+        const cm = editors.js;
+
+        // Expand sidebar if collapsed
+        if (state.collapsed) {
+            state.collapsed = false;
+            render();
+        }
+
+        // Switch to JS panel if in fullscreen
+        if (state.fullscreen && state.fullscreen !== 'js') {
+            state.fullscreen = 'js';
+            render();
+        }
+
+        // Focus and scroll to line
+        cm.focus();
+        cm.setCursor({ line: lineIndex, ch: 0 });
+        cm.scrollIntoView({ line: lineIndex, ch: 0 }, 100);
+    }
+
+    function formatTime(timestamp) {
+        const d = new Date(timestamp);
+        return d.toLocaleTimeString('en-US', { hour12: false });
+    }
+
+    function renderConsole() {
+        const panel = document.getElementById('console-panel');
+        const body = document.getElementById('console-body');
+        const badge = document.getElementById('console-badge');
+        const minimizeBtn = document.getElementById('console-minimize');
+        const fullscreenBtn = document.getElementById('console-fullscreen');
+        const exitFullscreenBtn = document.getElementById('console-exit-fullscreen');
+
+        if (!panel) return;
+
+        // Set panel height and states
+        if (consoleState.fullscreen) {
+            panel.style.height = '';
+            panel.classList.remove('collapsed');
+            panel.classList.add('fullscreen');
+        } else if (consoleState.expanded) {
+            panel.style.height = `${consoleState.height}px`;
+            panel.classList.remove('collapsed', 'fullscreen');
+        } else {
+            panel.style.height = `${HEADER_H}px`;
+            panel.classList.add('collapsed');
+            panel.classList.remove('fullscreen');
+        }
+
+        // Update button visibility
+        if (minimizeBtn && fullscreenBtn && exitFullscreenBtn) {
+            minimizeBtn.style.display = 'flex';
+            fullscreenBtn.style.display = consoleState.fullscreen ? 'none' : 'flex';
+            exitFullscreenBtn.style.display = consoleState.fullscreen ? 'flex' : 'none';
+        }
+
+        // Update badge
+        const errorCount = consoleState.entries.filter(e => e.type === 'error').length;
+        const totalCount = consoleState.entries.length;
+        badge.textContent = totalCount > 0 ? totalCount : '';
+        badge.classList.toggle('has-errors', errorCount > 0);
+
+        // Update filter buttons
+        document.querySelectorAll('.console-filters .pill').forEach(f => {
+            f.classList.toggle('active', f.dataset.filter === consoleState.filter);
+        });
+
+        // Filter entries with original indices
+        const filtered = consoleState.entries
+            .map((e, i) => ({ ...e, originalIndex: i }))
+            .filter(e => consoleState.filter === 'all' || e.type === consoleState.filter);
+
+        // Group consecutive duplicates
+        const grouped = [];
+        for (const entry of filtered) {
+            const last = grouped[grouped.length - 1];
+            if (last && last.type === entry.type && last.message === entry.message) {
+                last.count++;
+                last.timestamp = entry.timestamp;
+            } else {
+                grouped.push({ ...entry, count: 1 });
+            }
+        }
+
+        // Render entries
+        if (grouped.length === 0) {
+            body.innerHTML = '<div class="console-empty">No console output</div>';
+        } else {
+            body.innerHTML = grouped.map(entry => {
+                const lineLink = entry.line
+                    ? `<span class="console-line" data-line="${entry.line}">:${entry.line}</span>`
+                    : '';
+                const countBadge = entry.count > 1
+                    ? `<span class="console-count">${entry.count}</span>`
+                    : '';
+                
+                // Check if this entry is the currently copied one
+                const isCopied = state.clipboard?.type === 'console-entry' && 
+                    state.clipboard.entryIndex === entry.originalIndex;
+                const typeLabel = isCopied ? `COPIED ${entry.type.toUpperCase()}` : entry.type.toUpperCase();
+                
+                return `
+                    <div class="console-entry ${entry.type}" data-index="${entry.originalIndex}">
+                        <span class="console-time">${formatTime(entry.timestamp)}</span>
+                        <span class="console-type ${entry.type}${isCopied ? ' copied' : ''}">${typeLabel}</span>
+                        <span class="console-message">${escapeHtml(entry.message)}</span>
+                        ${countBadge}
+                        ${lineLink}
+                    </div>
+                `;
+            }).join('');
+
+            // Auto-scroll to bottom
+            body.scrollTop = body.scrollHeight;
+        }
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    async function copyToClipboard(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+        } catch (err) {
+            const tmp = document.createElement('textarea');
+            tmp.value = text;
+            tmp.style.position = 'fixed';
+            tmp.style.opacity = '0';
+            document.body.appendChild(tmp);
+            tmp.focus();
+            tmp.select();
+            document.execCommand('copy');
+            document.body.removeChild(tmp);
+        }
+    }
+
+    // Message listener for console output from iframe
+    window.addEventListener('message', (e) => {
+        if (e.data && e.data.source === 'aerocode-console') {
+            // Ignore messages from stale iframe executions
+            if (e.data.gen !== previewGeneration) return;
+
+            // Extract line number from error
+            // Stack traces show usercode.js:LINE where LINE is 1-based user code line
+            let line = null;
+            if (e.data.type === 'error' && e.data.message) {
+                const match = e.data.message.match(/usercode\.js:(\d+)/);
+                if (match) {
+                    line = parseInt(match[1], 10);
+                }
+            }
+            // Fallback to window.onerror line (but this is raw doc line, less reliable)
+            if (!line && e.data.line) {
+                line = e.data.line;
+            }
+            
+            consoleState.entries.push({ ...e.data, line });
+            renderConsole();
+
+            // Mark error line in editor
+            if (e.data.type === 'error' && line && line > 0) {
+                markErrorLine(line);
+            }
+        }
+    });
 
     // Init
     function init() {
         dom.sidebar = document.getElementById('sidebar');
         dom.strip = document.getElementById('sidebar-strip');
         dom.previewStrip = document.getElementById('preview-strip');
+        dom.previewContainer = document.querySelector('.preview');
         dom.overlay = document.getElementById('drag-overlay');
         dom.preview = document.getElementById('preview-frame');
         dom.resizer = document.getElementById('sidebar-resizer');
@@ -884,29 +1663,95 @@
         };
 
         const modes = { html: 'htmlmixed', css: 'css', js: 'javascript' };
+        const triggerChars = {
+            html: ['<', '/', '"', '=', ' '],
+            css: [':', ';', '{', '.', '#', ' '],
+            js: ['.']
+        };
+
+        // Create editors
         PANELS.forEach(lang => {
             document.getElementById(`code-${lang}`).value = DEFAULTS[lang];
-            const cm = CodeMirror.fromTextArea(document.getElementById(`code-${lang}`), {
+
+            const editorConfig = {
                 mode: modes[lang],
                 theme: 'neat',
                 lineNumbers: true,
-                keyMap: 'vim'
-            });
-            cm.on('change', () => {
-                updatePreview();
-                if (state.clipboard !== null) {
-                    state.clipboard = null;
-                    render();
+                keyMap: 'vim',
+                extraKeys: {
+                    'Ctrl-Space': 'autocomplete',
+                    'Tab': function(cm) {
+                        // HTML tag completion: <tagname + Tab -> <tagname></tagname>
+                        if (lang === 'html') {
+                            const cursor = cm.getCursor();
+                            const line = cm.getLine(cursor.line);
+                            const beforeCursor = line.slice(0, cursor.ch);
+                            const match = beforeCursor.match(/<([a-zA-Z][a-zA-Z0-9]*)\s*$/);
+                            if (match) {
+                                const tag = match[1];
+                                const voidTags = ['area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'];
+                                if (voidTags.includes(tag.toLowerCase())) {
+                                    cm.replaceRange('>', cursor);
+                                } else {
+                                    cm.replaceRange(`></${tag}>`, cursor);
+                                    cm.setCursor({ line: cursor.line, ch: cursor.ch + 1 });
+                                }
+                                return;
+                            }
+                        }
+                        // Default tab behavior
+                        if (cm.somethingSelected()) {
+                            cm.indentSelection('add');
+                        } else {
+                            cm.replaceSelection('  ', 'end');
+                        }
+                    }
+                },
+                hintOptions: { completeSingle: false },
+                autoCloseTags: true,
+                autoCloseBrackets: true,
+                matchTags: lang === 'html' ? { bothTags: true } : false
+            };
+
+            // Add Ctrl-J for jump to matching tag in HTML
+            if (lang === 'html') {
+                editorConfig.extraKeys['Ctrl-J'] = 'toMatchingTag';
+            }
+
+            const cm = CodeMirror.fromTextArea(document.getElementById(`code-${lang}`), editorConfig);
+
+            cm.on('inputRead', function(editor, change) {
+                if (change.origin !== '+input') return;
+                if (editor.state.completionActive) return;
+
+                const lastChar = change.text[0];
+                if (triggerChars[lang].includes(lastChar)) {
+                    CodeMirror.commands.autocomplete(editor, null, { completeSingle: false });
                 }
             });
+
             editors[lang] = cm;
         });
 
         initializeHeights();
         bindEvents();
-        updatePreview();
         render();
-        loadFromHash();
+        renderConsole();
+
+        // Load from hash, then run first preview, then bind change handlers
+        loadFromHash().then(() => {
+            updatePreview();
+
+            PANELS.forEach(lang => {
+                editors[lang].on('change', () => {
+                    updatePreview();
+                    if (state.clipboard !== null) {
+                        state.clipboard = null;
+                        render();
+                    }
+                });
+            });
+        });
     }
 
     init();
