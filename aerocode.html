@@ -240,6 +240,10 @@
             right: 0;
         }
 
+        /* Utility classes */
+        .flex-center { display: flex; align-items: center; }
+        .flex-gap { display: flex; gap: 4px; }
+
         /* Small text button (copy, clear) */
         .text-btn {
             font-size: 10px;
@@ -352,10 +356,9 @@
             justify-content: center;
             cursor: pointer;
             transition: box-shadow 0.15s ease-out, filter 0.15s ease-out;
-            /* Shared traffic button shadows */
-            --traffic-shadow: 0 1px 2px var(--alpha-black-25), 0 1px 0 var(--alpha-white-50) inset, 0 -1px 2px var(--alpha-black-10) inset;
-            --traffic-shadow-hover: 0 1px 2px var(--alpha-black-25), 0 1px 0 var(--alpha-white-75) inset, 0 -1px 2px var(--alpha-black-10) inset;
-            --traffic-shadow-active: 0 1px 1px var(--alpha-black-10), var(--shadow-inset-pressed);
+            background: var(--btn-bg);
+            border: 1px solid var(--btn-border);
+            box-shadow: 0 1px 2px var(--alpha-black-25), 0 1px 0 var(--alpha-white-50) inset, 0 -1px 2px var(--alpha-black-10) inset;
         }
         .traffic-btn::after {
             content: "";
@@ -370,56 +373,15 @@
             transition: opacity 0.15s ease-out;
         }
         .traffic-btn svg { width: 8px; height: 8px; opacity: 0; }
+        .traffic-btn:hover { box-shadow: 0 1px 2px var(--alpha-black-25), 0 1px 0 var(--alpha-white-75) inset, 0 -1px 2px var(--alpha-black-10) inset; filter: brightness(1.1); }
         .traffic-btn:hover svg { opacity: 0.7; }
-        .traffic-btn path { stroke: var(--alpha-black-50); stroke-width: 1.5; stroke-linecap: round; }
         .traffic-btn:hover::after { opacity: 0.9; }
-        .traffic-btn:active::after {
-            top: auto;
-            bottom: 1px;
-            background: linear-gradient(to top, var(--alpha-white-50), transparent);
-        }
-        .btn-yellow {
-            background: var(--traffic-amber);
-            border: 1px solid var(--traffic-amber-border);
-            box-shadow: var(--traffic-shadow);
-        }
-        .btn-yellow:hover {
-            box-shadow: var(--traffic-shadow-hover);
-            filter: brightness(1.1);
-        }
-        .btn-yellow:active {
-            background: var(--traffic-amber-pressed);
-            box-shadow: var(--traffic-shadow-active);
-            filter: brightness(0.95);
-        }
-        .btn-green {
-            background: var(--traffic-green);
-            border: 1px solid var(--traffic-green-border);
-            box-shadow: var(--traffic-shadow);
-        }
-        .btn-green:hover {
-            box-shadow: var(--traffic-shadow-hover);
-            filter: brightness(1.1);
-        }
-        .btn-green:active {
-            background: var(--traffic-green-pressed);
-            box-shadow: var(--traffic-shadow-active);
-            filter: brightness(0.95);
-        }
-        .btn-red {
-            background: var(--traffic-red);
-            border: 1px solid var(--traffic-red-border);
-            box-shadow: var(--traffic-shadow);
-        }
-        .btn-red:hover {
-            box-shadow: var(--traffic-shadow-hover);
-            filter: brightness(1.1);
-        }
-        .btn-red:active {
-            background: var(--traffic-red-pressed);
-            box-shadow: var(--traffic-shadow-active);
-            filter: brightness(0.95);
-        }
+        .traffic-btn:active { background: var(--btn-bg-pressed); box-shadow: 0 1px 1px var(--alpha-black-10), var(--shadow-inset-pressed); filter: brightness(0.95); }
+        .traffic-btn:active::after { top: auto; bottom: 1px; background: linear-gradient(to top, var(--alpha-white-50), transparent); }
+        .traffic-btn path { stroke: var(--alpha-black-50); stroke-width: 1.5; stroke-linecap: round; }
+        .btn-yellow { --btn-bg: var(--traffic-amber); --btn-border: var(--traffic-amber-border); --btn-bg-pressed: var(--traffic-amber-pressed); }
+        .btn-green { --btn-bg: var(--traffic-green); --btn-border: var(--traffic-green-border); --btn-bg-pressed: var(--traffic-green-pressed); }
+        .btn-red { --btn-bg: var(--traffic-red); --btn-border: var(--traffic-red-border); --btn-bg-pressed: var(--traffic-red-pressed); }
 
         /* Drag overlay */
         #drag-overlay {
@@ -610,112 +572,31 @@
             box-shadow: none;
             color: var(--text);
         }
-        .segmented-control .pill:not(.active):hover::before {
-            opacity: 1;
-        }
-        .segmented-control .pill:active {
-            background: transparent;
-        }
-        .segmented-control .pill.active {
-            background: transparent;
-            color: var(--text);
-            text-shadow: 0 1px 0 var(--alpha-white-50);
-            box-shadow: none;
-            transition: color 0.2s ease, text-shadow 0.2s ease;
-        }
-        .segmented-control .pill.active:hover {
-            background: transparent;
-        }
+        .segmented-control .pill:not(.active):hover::before { opacity: 1; }
+        .segmented-control .pill:active, .segmented-control .pill.active, .segmented-control .pill.active:hover { background: transparent; }
+        .segmented-control .pill.active { color: var(--text); text-shadow: 0 1px 0 var(--alpha-white-50); box-shadow: none; transition: color 0.2s ease, text-shadow 0.2s ease; }
 
         /* Bottom toolbar */
-        .bottom-toolbar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            border-top: 1px solid var(--border-dark);
-            z-index: 50;
-        }
+        .bottom-toolbar { position: absolute; bottom: 0; left: 0; right: 0; border-top: 1px solid var(--border-dark); z-index: 50; }
 
         /* Preview area */
-        .preview {
-            flex: 1;
-            min-width: 0;
-            background: white;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        .iframe-container {
-            position: relative;
-            flex: 1;
-            min-height: 0;
-        }
-        .iframe-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: white;
-        }
+        .preview { flex: 1; min-width: 0; background: white; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        .iframe-container { position: relative; flex: 1; min-height: 0; }
+        .iframe-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; background: white; }
 
         /* Console panel */
-        .console-panel {
-            border-top: 1px solid var(--border-dark);
-            border-bottom: none;
-            border-left: none;
-            border-right: none;
-            border-radius: 0;
-            box-shadow: none;
-            flex-shrink: 0;
-        }
-        .console-panel .header-bar {
-            cursor: row-resize;
-            border-bottom: 1px solid var(--border-dark);
-        }
+        .console-panel { border-top: 1px solid var(--border-dark); border-bottom: none; border-left: none; border-right: none; border-radius: 0; box-shadow: none; flex-shrink: 0; }
+        .console-panel .header-bar { cursor: row-resize; border-bottom: 1px solid var(--border-dark); }
         .console-panel.collapsed .console-body { display: none; }
-        .console-panel.fullscreen {
-            flex: 1 1 auto;
-            border-radius: 0;
-        }
+        .console-panel.fullscreen { flex: 1 1 auto; border-radius: 0; }
         .preview:has(.console-panel.fullscreen) .iframe-container { display: none; }
 
-        .console-badge {
-            background: var(--c-gray);
-            color: var(--text-inverse);
-            font-family: var(--font-ui);
-            font-size: 9px;
-            font-weight: 600;
-            padding: 2px 6px;
-            border-radius: 10px;
-            min-width: 16px;
-            text-align: center;
-            margin-left: 6px;
-        }
-
+        .console-badge { background: var(--c-gray); color: var(--text-inverse); font-family: var(--font-ui); font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 10px; min-width: 16px; text-align: center; margin-left: 6px; }
         .console-badge.has-errors { background: var(--console-error); }
-
         .console-filters { margin-left: 8px; margin-right: 8px; }
+        .console-body { flex: 1; overflow-y: auto; font-family: var(--font-mono); font-size: 12px; line-height: 1.4; background: var(--bg-content); }
 
-        .console-body {
-            flex: 1;
-            overflow-y: auto;
-            font-family: var(--font-mono);
-            font-size: 12px;
-            line-height: 1.4;
-            background: var(--bg-content);
-        }
-
-        .console-entry {
-            padding: 4px 12px;
-            border-bottom: 1px solid var(--alpha-black-05);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .console-entry { padding: 4px 12px; border-bottom: 1px solid var(--alpha-black-05); display: flex; align-items: flex-start; gap: 8px; }
         .console-entry:hover { background: var(--alpha-black-05); }
 
         .console-time { color: var(--text-faint); font-size: 10px; flex-shrink: 0; }
@@ -726,7 +607,7 @@
         .console-type.error { background: var(--console-error); color: var(--text-inverse); }
         .console-type.copied { background: var(--gradient-accent); color: var(--text-inverse); border-color: var(--accent-border); }
 
-        .console-message { color: var(--text); word-break: break-word; flex: 1; white-space: pre-wrap; }
+        .console-message { color: var(--text); word-break: break-word; flex: 1; white-space: pre-wrap; text-align: left; }
         .console-entry.warn .console-message { color: var(--console-warn-text); }
         .console-entry.error .console-message { color: var(--console-error-text); }
 
@@ -947,7 +828,7 @@
 
         <div class="editor-box panel" id="box-html">
             <div class="header-bar" id="header-html">
-                <div style="display:flex;align-items:center">
+                <div class="flex-center">
                     <span class="label" data-show="desktop">HTML</span>
                     <span class="text-btn" data-lang="html">copy</span>
                 </div>
@@ -979,7 +860,7 @@
 
         <div class="editor-box panel" id="box-css">
             <div class="header-bar" id="header-css">
-                <div style="display:flex;align-items:center">
+                <div class="flex-center">
                     <span class="label" data-show="desktop">CSS</span>
                     <span class="text-btn" data-lang="css">copy</span>
                 </div>
@@ -1069,7 +950,7 @@ body::before {
 
         <div class="editor-box panel" id="box-js">
             <div class="header-bar" id="header-js">
-                <div style="display:flex;align-items:center">
+                <div class="flex-center">
                     <span class="label" data-show="desktop">JS</span>
                     <span class="text-btn" data-lang="js">copy</span>
                 </div>
@@ -1098,7 +979,7 @@ document.querySelector('button').onclick = () => {
         </div>
 
         <div class="bottom-toolbar header-bar">
-            <div style="display: flex; align-items: center;">
+            <div class="flex-center">
                 <div class="mode-switcher segmented-control">
                     <span class="pill active" data-keymap="vim">VIM</span>
                     <span class="pill" data-keymap="default">NORMAL</span>
@@ -1107,7 +988,7 @@ document.querySelector('button').onclick = () => {
                 <span class="label offline-label">OFFLINE</span>
                 <span class="text-btn" id="layout-btn">mobile</span>
             </div>
-            <div style="display: flex; gap: 4px;">
+            <div class="flex-gap">
                 <span class="pill" id="new-btn">NEW</span>
                 <span class="pill" id="share-btn">SHARE</span>
             </div>
@@ -1124,11 +1005,11 @@ document.querySelector('button').onclick = () => {
             </div>
         </div>
         <div id="iframe-container" class="iframe-container">
-            <iframe id="preview-frame" sandbox="allow-scripts allow-modals allow-same-origin"></iframe>
+            <iframe id="preview-frame" sandbox="allow-scripts allow-modals"></iframe>
         </div>
         <div id="console-panel" class="console-panel panel">
             <div class="header-bar" id="console-header">
-                <div style="display:flex;align-items:center">
+                <div class="flex-center">
                     <span class="label" id="console-label">CONSOLE</span>
                     <span class="console-badge" id="console-badge"></span>
                     <div class="console-filters segmented-control" data-show="desktop">
@@ -1490,35 +1371,16 @@ document.querySelector('button').onclick = () => {
         layoutBtn.classList.toggle('active', state.layout !== 'auto');
 
         // Clipboard button states
-        const shareBtn = document.getElementById('share-btn');
-        if (state.clipboard?.type === 'share') {
-            shareBtn.classList.add('active');
-            shareBtn.textContent = 'COPIED URL';
-        } else {
-            shareBtn.classList.remove('active');
-            shareBtn.textContent = 'SHARE';
-        }
-
-        document.querySelectorAll('.text-btn[data-lang]').forEach(btn => {
-            const lang = btn.dataset.lang;
-            if (state.clipboard?.type === 'code' && state.clipboard.lang === lang) {
-                btn.textContent = 'copied!';
-                btn.classList.add('active');
-            } else {
-                btn.textContent = 'copy';
-                btn.classList.remove('active');
-            }
-        });
-
-        // Console copy button state
-        const consoleCopyBtn = document.getElementById('console-copy');
-        if (state.clipboard?.type === 'console') {
-            consoleCopyBtn.textContent = 'copied!';
-            consoleCopyBtn.classList.add('active');
-        } else {
-            consoleCopyBtn.textContent = 'copy';
-            consoleCopyBtn.classList.remove('active');
-        }
+        const updateBtn = (btn, active, activeText, normalText) => {
+            btn.classList.toggle('active', active);
+            btn.textContent = active ? activeText : normalText;
+        };
+        
+        updateBtn(document.getElementById('share-btn'), state.clipboard?.type === 'share', 'COPIED URL', 'SHARE');
+        document.querySelectorAll('.text-btn[data-lang]').forEach(btn => 
+            updateBtn(btn, state.clipboard?.type === 'code' && state.clipboard.lang === btn.dataset.lang, 'copied!', 'copy')
+        );
+        updateBtn(document.getElementById('console-copy'), state.clipboard?.type === 'console', 'copied!', 'copy');
 
         // Re-render console to update copied entry state
         renderConsole();
@@ -1931,29 +1793,20 @@ document.querySelector('button').onclick = () => {
         });
 
         // Mobile view navigation pills
+        const withoutTransitions = (fn) => {
+            const controls = document.querySelectorAll('.segmented-control');
+            controls.forEach(c => c.style.setProperty('--slider-transition', 'none'));
+            fn();
+            updateAllSegmentedSliders();
+            requestAnimationFrame(() => controls.forEach(c => c.style.removeProperty('--slider-transition')));
+        };
+
         document.querySelectorAll('[data-mobile-view]').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 state.mobileView = btn.dataset.mobileView;
-
-                // Disable transitions on segmented controls before render
-                document.querySelectorAll('.segmented-control').forEach(c => {
-                    c.style.setProperty('--slider-transition', 'none');
-                });
-
-                render();
-
-                // Update sliders immediately without animation, then re-enable transitions
-                updateAllSegmentedSliders();
-                requestAnimationFrame(() => {
-                    document.querySelectorAll('.segmented-control').forEach(c => {
-                        c.style.removeProperty('--slider-transition');
-                    });
-                    // Refresh editors when switching to code view
-                    if (state.mobileView === 'code') {
-                        Object.values(editors).forEach(cm => cm.refresh());
-                    }
-                });
+                withoutTransitions(render);
+                if (state.mobileView === 'code') Object.values(editors).forEach(cm => cm.refresh());
             });
         });
 
@@ -2114,6 +1967,31 @@ document.querySelector('button').onclick = () => {
 })();`;
     }
 
+    // Build the iframe listener script that receives updates via postMessage
+    // The listener is a string that we embed in srcdoc and re-inject after each document.write
+    const IFRAME_LISTENER = `function(e) {
+    if (!e.data || e.data.type !== 'aerocode-update') return;
+    var d = e.data;
+    var css = 'data:text/css,' + encodeURIComponent(d.css);
+    var js = 'data:text/javascript,' + encodeURIComponent(d.js + '\\n//# sourceURL=usercode.js');
+    document.open();
+    document.write(
+        '<!DOCTYPE html><html><head>' +
+        '<link rel="stylesheet" href="' + css + '">' +
+        '<script>' + d.interceptor + '<\\/script>' +
+        '<script>window.addEventListener("message", ' + d.listener + ');<\\/script>' +
+        '<script defer src="' + js + '"><\\/script>' +
+        '</head><body>' + d.html + '</body></html>'
+    );
+    document.close();
+}`;
+
+    function buildIframeListener() {
+        return `<!DOCTYPE html><html><head><script>
+window.addEventListener('message', ${IFRAME_LISTENER});
+<\/script></head><body></body></html>`;
+    }
+
     function updatePreview() {
         // Increment generation to ignore messages from previous iframe executions
         const generation = ++previewGeneration;
@@ -2134,30 +2012,14 @@ document.querySelector('button').onclick = () => {
         const css = getContent('css');
         const js = getContent('js');
 
-        // Encode CSS and JS as data URIs to isolate from HTML parsing
-        const cssDataUri = 'data:text/css,' + encodeURIComponent(css);
-        const jsDataUri = 'data:text/javascript,' + encodeURIComponent(js + '\n//# sourceURL=usercode.js');
-
-        // Build document: interceptor runs immediately, user JS deferred until DOM ready
-        const doc = ['<!DOCTYPE html>',
-            '<html>',
-            '<head>',
-            '<link rel="stylesheet" href="' + cssDataUri + '">',
-            '<script>' + buildInterceptor(generation) + '<\/script>',
-            '<script defer src="' + jsDataUri + '"><\/script>',
-            '</head>',
-            '<body>',
-            html,
-            '</body>',
-            '</html>'
-        ].join('\n');
-
-        // Rewrite existing iframe's document (no flash - same iframe stays visible)
-        const frame = dom.preview;
-        const frameDoc = frame.contentDocument || frame.contentWindow.document;
-        frameDoc.open();
-        frameDoc.write(doc);
-        frameDoc.close();
+        // Send content to iframe via postMessage - iframe does document.write itself
+        // This keeps syntax errors isolated inside the iframe
+        dom.preview.contentWindow.postMessage({
+            type: 'aerocode-update',
+            html, css, js,
+            interceptor: buildInterceptor(generation),
+            listener: IFRAME_LISTENER
+        }, '*');
 
         scheduleUrlUpdate();
     }
@@ -2345,26 +2207,15 @@ document.querySelector('button').onclick = () => {
         if (grouped.length === 0) {
             body.innerHTML = '<div class="console-empty">No console output</div>';
         } else {
-            body.innerHTML = grouped.map(entry => {
-                const lineLink = entry.line
-                    ? `<span class="console-line" data-line="${entry.line}">:${entry.line}</span>`
-                    : '';
-                const countBadge = entry.count > 1
-                    ? `<span class="console-count">${entry.count}</span>`
-                    : '';
-
-                // Check if this entry is the currently copied one
-                const isCopied = state.clipboard?.type === 'console-entry' &&
-                    state.clipboard.entryIndex === entry.originalIndex;
-                const typeLabel = isCopied ? `COPIED ${entry.type.toUpperCase()}` : entry.type.toUpperCase();
-
+            body.innerHTML = grouped.map(({ type, message, timestamp, line, count, originalIndex }) => {
+                const isCopied = state.clipboard?.type === 'console-entry' && state.clipboard.entryIndex === originalIndex;
                 return `
-                    <div class="console-entry ${entry.type}" data-index="${entry.originalIndex}">
-                        <span class="console-time">${formatTime(entry.timestamp)}</span>
-                        <span class="console-type ${entry.type}${isCopied ? ' copied' : ''}">${typeLabel}</span>
-                        <span class="console-message">${escapeHtml(entry.message)}</span>
-                        ${countBadge}
-                        ${lineLink}
+                    <div class="console-entry ${type}" data-index="${originalIndex}">
+                        <span class="console-time">${formatTime(timestamp)}</span>
+                        <span class="console-type ${type}${isCopied ? ' copied' : ''}">${isCopied ? `COPIED ${type.toUpperCase()}` : type.toUpperCase()}</span>
+                        <span class="console-message">${escapeHtml(message)}</span>
+                        ${count > 1 ? `<span class="console-count">${count}</span>` : ''}
+                        ${line ? `<span class="console-line" data-line="${line}">:${line}</span>` : ''}
                     </div>
                 `;
             }).join('');
@@ -2470,13 +2321,33 @@ document.querySelector('button').onclick = () => {
         render();
         renderConsole();
 
-        loadFromHash().then(() => {
-            updatePreview();
-            // CodeMirror change handlers
-            if (hasCodeMirror) {
-                PANELS.forEach(lang => editors[lang].on('change', onCodeChange));
+        // Initialize iframe with message listener, then load content
+        dom.preview.srcdoc = buildIframeListener();
+        dom.preview.onload = () => {
+            loadFromHash().then(() => {
+                updatePreview();
+                // CodeMirror change handlers
+                if (hasCodeMirror) {
+                    PANELS.forEach(lang => editors[lang].on('change', onCodeChange));
+                }
+            });
+        };
+    }
+
+    function handleTab(cm, lang) {
+        if (lang === 'html') {
+            const cursor = cm.getCursor();
+            const line = cm.getLine(cursor.line);
+            const match = line.slice(0, cursor.ch).match(/<([a-zA-Z][a-zA-Z0-9]*)\s*$/);
+            if (match) {
+                const tag = match[1];
+                const voidTags = ['area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'];
+                cm.replaceRange(voidTags.includes(tag.toLowerCase()) ? '>' : `></${tag}>`, cursor);
+                if (!voidTags.includes(tag.toLowerCase())) cm.setCursor({ line: cursor.line, ch: cursor.ch + 1 });
+                return;
             }
-        });
+        }
+        cm.somethingSelected() ? cm.indentSelection('add') : cm.replaceSelection('  ', 'end');
     }
 
     function initWithCodeMirror() {
@@ -2487,53 +2358,24 @@ document.querySelector('button').onclick = () => {
             js: ['.']
         };
 
-        // Create editors
         PANELS.forEach(lang => {
             document.getElementById(`code-${lang}`).value = DEFAULTS[lang];
+            const extraKeys = { 
+                'Ctrl-Space': 'autocomplete',
+                'Tab': (cm) => handleTab(cm, lang)
+            };
+            if (lang === 'html') extraKeys['Ctrl-J'] = 'toMatchingTag';
 
             const editorConfig = {
                 mode: modes[lang],
                 lineNumbers: true,
                 keyMap: 'vim',
-                extraKeys: {
-                    'Ctrl-Space': 'autocomplete',
-                    'Tab': function(cm) {
-                        // HTML tag completion: <tagname + Tab -> <tagname></tagname>
-                        if (lang === 'html') {
-                            const cursor = cm.getCursor();
-                            const line = cm.getLine(cursor.line);
-                            const beforeCursor = line.slice(0, cursor.ch);
-                            const match = beforeCursor.match(/<([a-zA-Z][a-zA-Z0-9]*)\s*$/);
-                            if (match) {
-                                const tag = match[1];
-                                const voidTags = ['area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'];
-                                if (voidTags.includes(tag.toLowerCase())) {
-                                    cm.replaceRange('>', cursor);
-                                } else {
-                                    cm.replaceRange(`></${tag}>`, cursor);
-                                    cm.setCursor({ line: cursor.line, ch: cursor.ch + 1 });
-                                }
-                                return;
-                            }
-                        }
-                        // Default tab behavior
-                        if (cm.somethingSelected()) {
-                            cm.indentSelection('add');
-                        } else {
-                            cm.replaceSelection('  ', 'end');
-                        }
-                    }
-                },
+                extraKeys,
                 hintOptions: { completeSingle: false },
                 autoCloseTags: true,
                 autoCloseBrackets: true,
                 matchTags: lang === 'html' ? { bothTags: true } : false
             };
-
-            // Add Ctrl-J for jump to matching tag in HTML
-            if (lang === 'html') {
-                editorConfig.extraKeys['Ctrl-J'] = 'toMatchingTag';
-            }
 
             const cm = CodeMirror.fromTextArea(document.getElementById(`code-${lang}`), editorConfig);
 
