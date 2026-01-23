@@ -599,15 +599,18 @@
         .console-entry { padding: 4px 12px; border-bottom: 1px solid var(--alpha-black-05); display: flex; align-items: flex-start; gap: 8px; }
         .console-entry:hover { background: var(--alpha-black-05); }
 
-        .console-time { color: var(--text-faint); font-size: 10px; flex-shrink: 0; }
-        .console-type { font-family: var(--font-ui); font-size: 10px; font-weight: 600; padding: 2px 10px; border-radius: 50px; flex-shrink: 0; cursor: pointer; border: 1px solid transparent; box-sizing: border-box; }
-        .console-type.log { background: var(--alpha-black-10); color: var(--text-muted); }
-        .console-type.info { background: var(--console-info); color: var(--text-inverse); }
-        .console-type.warn { background: var(--console-warn); color: var(--text-inverse); }
-        .console-type.error { background: var(--console-error); color: var(--text-inverse); }
-        .console-type.copied { background: var(--gradient-accent); color: var(--text-inverse); border-color: var(--accent-border); }
+        .console-time { color: var(--text-faint); font-size: 10px; flex-shrink: 0; margin-top: 3px; }
+        .console-type { font-family: var(--font-ui); font-size: 10px; font-weight: 600; padding: 2px 10px; border-radius: 50px; flex-shrink: 0; cursor: pointer; border: 1px solid var(--alpha-black-10); box-sizing: border-box; box-shadow: var(--shadow-inset-highlight), var(--shadow-inset-depth); text-shadow: 0 1px 0 var(--alpha-white-25); }
+        .console-type.log { background: var(--gradient-button); color: var(--text-muted); }
+        .console-type.info { background: linear-gradient(to bottom, var(--c-blue-light) 0%, var(--c-blue) 100%); color: var(--text-inverse); border-color: var(--c-blue-dark); text-shadow: 0 -1px 0 var(--alpha-black-25); }
+        .console-type.warn { background: var(--traffic-amber); color: var(--text-inverse); border-color: var(--traffic-amber-border); text-shadow: 0 -1px 0 var(--alpha-black-25); }
+        .console-type.error { background: var(--traffic-red); color: var(--text-inverse); border-color: var(--traffic-red-border); text-shadow: 0 -1px 0 var(--alpha-black-25); }
+        .console-type.log.copied { background: var(--gradient-button-pressed); box-shadow: var(--shadow-inset-pressed); }
+        .console-type.info.copied { background: linear-gradient(to bottom, var(--c-blue-dark) 0%, var(--c-blue) 100%); box-shadow: var(--shadow-inset-pressed); }
+        .console-type.warn.copied { background: var(--traffic-amber-pressed); box-shadow: var(--shadow-inset-pressed); }
+        .console-type.error.copied { background: var(--traffic-red-pressed); box-shadow: var(--shadow-inset-pressed); }
 
-        .console-message { color: var(--text); word-break: break-word; flex: 1; white-space: pre-wrap; text-align: left; }
+        .console-message { color: var(--text); word-break: break-word; flex: 1; white-space: pre-wrap; text-align: left; margin-top: 3px; }
         .console-entry.warn .console-message { color: var(--console-warn-text); }
         .console-entry.error .console-message { color: var(--console-error-text); }
 
@@ -801,7 +804,7 @@
         }
 
         /* Code hints adjustments for small screens */
-        @media (max-width: 600px) {
+        @media (max-width: 800px) {
             .CodeMirror-hints {
                 max-width: calc(100vw - 20px);
                 max-height: 150px;
@@ -851,7 +854,7 @@
   <div class="content">
     <div>
       <h1>AeroCode</h1>
-      <p><a href="https://isaac.sh/about" target="_blank">Isaac Clayton</a> · <a href="https://github.com/slightknack" target="_blank">GitHub</a></p>
+      <p><a href="https://isaac.sh/about" target="_blank">Isaac Clayton</a> · <a href="https://github.com/slightknack/aerocode" target="_blank">GitHub</a></p>
     </div>
     <button>Download Offline Editor</button>
   </div>
@@ -1005,7 +1008,7 @@ document.querySelector('button').onclick = () => {
             </div>
         </div>
         <div id="iframe-container" class="iframe-container">
-            <iframe id="preview-frame" sandbox="allow-scripts allow-modals"></iframe>
+            <iframe id="preview-frame" sandbox="allow-scripts allow-modals allow-same-origin"></iframe>
         </div>
         <div id="console-panel" class="console-panel panel">
             <div class="header-bar" id="console-header">
@@ -1099,7 +1102,7 @@ document.querySelector('button').onclick = () => {
     };
 
     // Layout detection
-    const mobileQuery = window.matchMedia('(max-width: 600px)');
+    const mobileQuery = window.matchMedia('(max-width: 800px)');
     function isMobile() {
         if (state.layout === 'mobile') return true;
         if (state.layout === 'desktop') return false;
@@ -1375,9 +1378,9 @@ document.querySelector('button').onclick = () => {
             btn.classList.toggle('active', active);
             btn.textContent = active ? activeText : normalText;
         };
-        
+
         updateBtn(document.getElementById('share-btn'), state.clipboard?.type === 'share', 'COPIED URL', 'SHARE');
-        document.querySelectorAll('.text-btn[data-lang]').forEach(btn => 
+        document.querySelectorAll('.text-btn[data-lang]').forEach(btn =>
             updateBtn(btn, state.clipboard?.type === 'code' && state.clipboard.lang === btn.dataset.lang, 'copied!', 'copy')
         );
         updateBtn(document.getElementById('console-copy'), state.clipboard?.type === 'console', 'copied!', 'copy');
@@ -1967,31 +1970,6 @@ document.querySelector('button').onclick = () => {
 })();`;
     }
 
-    // Build the iframe listener script that receives updates via postMessage
-    // The listener is a string that we embed in srcdoc and re-inject after each document.write
-    const IFRAME_LISTENER = `function(e) {
-    if (!e.data || e.data.type !== 'aerocode-update') return;
-    var d = e.data;
-    var css = 'data:text/css,' + encodeURIComponent(d.css);
-    var js = 'data:text/javascript,' + encodeURIComponent(d.js + '\\n//# sourceURL=usercode.js');
-    document.open();
-    document.write(
-        '<!DOCTYPE html><html><head>' +
-        '<link rel="stylesheet" href="' + css + '">' +
-        '<script>' + d.interceptor + '<\\/script>' +
-        '<script>window.addEventListener("message", ' + d.listener + ');<\\/script>' +
-        '<script defer src="' + js + '"><\\/script>' +
-        '</head><body>' + d.html + '</body></html>'
-    );
-    document.close();
-}`;
-
-    function buildIframeListener() {
-        return `<!DOCTYPE html><html><head><script>
-window.addEventListener('message', ${IFRAME_LISTENER});
-<\/script></head><body></body></html>`;
-    }
-
     function updatePreview() {
         // Increment generation to ignore messages from previous iframe executions
         const generation = ++previewGeneration;
@@ -2012,14 +1990,20 @@ window.addEventListener('message', ${IFRAME_LISTENER});
         const css = getContent('css');
         const js = getContent('js');
 
-        // Send content to iframe via postMessage - iframe does document.write itself
-        // This keeps syntax errors isolated inside the iframe
-        dom.preview.contentWindow.postMessage({
-            type: 'aerocode-update',
-            html, css, js,
-            interceptor: buildInterceptor(generation),
-            listener: IFRAME_LISTENER
-        }, '*');
+        // Use data URIs to avoid injection issues with closing script tags in user code
+        const cssDataUri = 'data:text/css,' + encodeURIComponent(css);
+        const jsDataUri = 'data:text/javascript,' + encodeURIComponent(js + '\n//# sourceURL=usercode.js');
+
+        const doc = dom.preview.contentDocument;
+        doc.open();
+        doc.write(
+            '<!DOCTYPE html><html><head>' +
+            '<link rel="stylesheet" href="' + cssDataUri + '">' +
+            '<scr' + 'ipt>' + buildInterceptor(generation) + '</scr' + 'ipt>' +
+            '<scr' + 'ipt defer src="' + jsDataUri + '"></scr' + 'ipt>' +
+            '</head><body>' + html + '</body></html>'
+        );
+        doc.close();
 
         scheduleUrlUpdate();
     }
@@ -2321,17 +2305,13 @@ window.addEventListener('message', ${IFRAME_LISTENER});
         render();
         renderConsole();
 
-        // Initialize iframe with message listener, then load content
-        dom.preview.srcdoc = buildIframeListener();
-        dom.preview.onload = () => {
-            loadFromHash().then(() => {
-                updatePreview();
-                // CodeMirror change handlers
-                if (hasCodeMirror) {
-                    PANELS.forEach(lang => editors[lang].on('change', onCodeChange));
-                }
-            });
-        };
+        loadFromHash().then(() => {
+            updatePreview();
+            // CodeMirror change handlers
+            if (hasCodeMirror) {
+                PANELS.forEach(lang => editors[lang].on('change', onCodeChange));
+            }
+        });
     }
 
     function handleTab(cm, lang) {
@@ -2360,7 +2340,7 @@ window.addEventListener('message', ${IFRAME_LISTENER});
 
         PANELS.forEach(lang => {
             document.getElementById(`code-${lang}`).value = DEFAULTS[lang];
-            const extraKeys = { 
+            const extraKeys = {
                 'Ctrl-Space': 'autocomplete',
                 'Tab': (cm) => handleTab(cm, lang)
             };

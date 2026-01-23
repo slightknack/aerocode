@@ -42,3 +42,5 @@ CodeMirror 5.65.13 (loaded from CDN)
 ## License
 
 CC0 1.0 Universal - Public Domain
+
+> "`</script>` in a JavaScript comment still terminates the script tag for the HTML parser."
