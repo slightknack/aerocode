@@ -973,11 +973,14 @@ body::before {
             </div>
             <div class="editor-content"><textarea id="code-js">console.log("Welcome to AeroCode!");
 
-document.querySelector('button').onclick = () => {
+document.querySelector('button').onclick = async () => {
+  const res = await fetch('https://slightknack.dev/aerocode.html');
+  const blob = await res.blob();
   const a = document.createElement('a');
-  a.href = 'https://slightknack.dev/aerocode.html';
+  a.href = URL.createObjectURL(blob);
   a.download = 'aerocode.html';
   a.click();
+  URL.revokeObjectURL(a.href);
 };</textarea></div>
         </div>
 
