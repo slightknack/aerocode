@@ -12,25 +12,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AeroCode</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
-    
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.css">
     <style>
         :root {
             /* =====================================================
                COLOR MODEL - Comprehensive Aqua/Aero System
-               
+
                THEORY:
                1. BASE PALETTE: 12 core colors from Apollo/PICO-8
                2. ALPHA SCALE: Quantized to 6 steps (10/25/50/75/90/95)
                3. SEMANTIC TOKENS: All derived from base + alpha
                4. NO INLINE COLORS: Everything references variables
-               
+
                Perceptual notes:
                - Traffic lights use LCH-balanced colors for equal brightness
                - Blues are the primary accent (Aqua heritage)
                - Warm tones (peach/teal) for background gradient
                ===================================================== */
-            
+
             /* --- Base Palette (12 colors) --- */
             --c-white: #ffffff;
             --c-offwhite: #f5f5f5;
@@ -39,27 +39,27 @@
             --c-gray-warm: #577277;
             --c-dark: #172038;
             --c-navy: #253a5e;
-            
+
             --c-blue: #4f8fba;
             --c-blue-light: #73bed3;
             --c-blue-dark: #3c5e8b;
             --c-blue-bright: #29adff;
-            
+
             --c-green: #00d74e;
             --c-green-light: #0ced6a;
             --c-green-dark: #008f17;
-            
+
             --c-amber: #ffbd2c;
             --c-amber-light: #ffcf45;
             --c-amber-dark: #d37800;
-            
+
             --c-red: #ff5a5b;
             --c-red-light: #ff8680;
             --c-red-dark: #c62a34;
-            
+
             --c-peach: #fed6e3;
             --c-teal: #a8edea;
-            
+
             /* --- Alpha Scale (quantized to 6 steps) --- */
             --alpha-white-95: rgba(255, 255, 255, 0.95);
             --alpha-white-90: rgba(255, 255, 255, 0.9);
@@ -67,31 +67,31 @@
             --alpha-white-50: rgba(255, 255, 255, 0.5);
             --alpha-white-25: rgba(255, 255, 255, 0.25);
             --alpha-white-10: rgba(255, 255, 255, 0.1);
-            
+
             --alpha-black-50: rgba(0, 0, 0, 0.5);
             --alpha-black-25: rgba(0, 0, 0, 0.25);
             --alpha-black-10: rgba(0, 0, 0, 0.1);
             --alpha-black-05: rgba(0, 0, 0, 0.05);
-            
+
             /* Colored alphas (for highlights) */
             --alpha-blue-10: rgba(79, 143, 186, 0.1);
             --alpha-red-10: rgba(255, 90, 91, 0.1);
-            
+
             /* --- Derived: Button grays (from white with black overlay) --- */
             --c-btn-light: #e8e8e8;
             --c-btn-mid: #e0e0e0;
             --c-btn-dark: #d8d8d8;
-            
+
             /* =====================================================
                SEMANTIC TOKENS - Composed from palette
                ===================================================== */
-            
+
             /* --- Text --- */
             --text: var(--c-dark);
             --text-muted: var(--c-gray-warm);
             --text-faint: var(--c-gray);
             --text-inverse: var(--c-white);
-            
+
             /* --- Backgrounds --- */
             --bg-body-grad-1: var(--c-teal);
             --bg-body-grad-2: var(--c-peach);
@@ -100,21 +100,21 @@
             --bg-header: linear-gradient(to bottom, var(--c-white) 0%, var(--c-offwhite) 100%);
             --bg-gutter: var(--alpha-white-95);
             --bg-sidebar: linear-gradient(to bottom, var(--alpha-white-50) 0%, var(--alpha-white-25) 100%);
-            
+
             /* --- Borders --- */
             --border-light: var(--alpha-white-90);
             --border-dark: var(--alpha-black-10);
             --border-btn: var(--alpha-black-10);
-            
+
             /* --- Accent (interactive) --- */
             --accent: var(--c-blue);
             --accent-hover: var(--c-blue-dark);
             --accent-border: var(--c-navy);
-            
+
             /* =====================================================
                COMPONENT TOKENS
                ===================================================== */
-            
+
             /* --- Shadows (using quantized alpha) --- */
             --shadow-drop-sm: 0 1px 2px var(--alpha-black-10);
             --shadow-drop-md: 0 2px 4px var(--alpha-black-10);
@@ -125,7 +125,7 @@
             --shadow-inset-pressed: 0 2px 3px var(--alpha-black-25) inset;
             --shadow-panel: 0 2px 8px var(--alpha-black-05), 0 1px 2px var(--alpha-black-05);
             --shadow-subtle: 0 4px 10px var(--alpha-black-05);
-            
+
             /* --- Button Gradients --- */
             --gradient-button: linear-gradient(to bottom, var(--c-white) 0%, var(--c-btn-mid) 100%);
             --gradient-button-hover: linear-gradient(to bottom, var(--c-white) 0%, var(--c-btn-light) 100%);
@@ -134,7 +134,7 @@
             --gradient-accent-hover: linear-gradient(to bottom, var(--c-blue-light) 0%, var(--c-blue) 100%);
             --gradient-shine: linear-gradient(to bottom, var(--alpha-white-75), transparent);
             --gradient-shine-pressed: linear-gradient(to top, var(--alpha-white-25), transparent);
-            
+
             /* --- Traffic Lights (perceptually balanced) --- */
             --traffic-red: linear-gradient(to bottom, var(--c-red-light) 0%, var(--c-red) 100%);
             --traffic-red-border: var(--c-red-dark);
@@ -145,7 +145,7 @@
             --traffic-green: linear-gradient(to bottom, var(--c-green-light) 0%, var(--c-green) 100%);
             --traffic-green-border: var(--c-green-dark);
             --traffic-green-pressed: linear-gradient(to bottom, var(--c-green-dark) 0%, var(--c-green) 100%);
-            
+
             /* --- Share Button (uses blue-bright from palette) --- */
             --c-share-light: #6ac1ff;
             --c-share-dark: #0074c3;
@@ -153,30 +153,30 @@
             --gradient-share-hover: linear-gradient(to bottom, var(--c-blue-light) 0%, var(--c-share-light) 100%);
             --gradient-share-pressed: linear-gradient(to bottom, var(--c-share-dark) 0%, var(--c-blue-bright) 100%);
             --share-border: var(--c-share-dark);
-            
+
             /* --- Console badges (derived from palette) --- */
             --console-info: var(--c-blue);
             --console-warn: var(--c-amber);
             --console-warn-text: var(--c-amber-dark);
             --console-error: var(--c-red);
             --console-error-text: var(--c-red-dark);
-            
+
             /* --- Code hints (derived from palette) --- */
             --hint-bg-from: var(--c-blue-light);
             --hint-bg-to: var(--c-blue);
-            
+
             /* --- Strips (resize handles) --- */
             --strip-bg: var(--c-blue);
             --strip-bg-hover: var(--c-blue-dark);
             --strip-border: var(--c-blue-dark);
-            
+
             /* =====================================================
                LAYOUT
                ===================================================== */
             --header-height: 32px;
             --gap: 8px;
             --radius: 10px;
-            
+
             /* =====================================================
                FONTS
                ===================================================== */
@@ -254,8 +254,10 @@
         .text-btn:hover { opacity: 1; color: var(--text); }
         .text-btn.active { color: var(--accent); opacity: 1; }
 
-        /* Frutiger Aero pill buttons */
+        /* Pill buttons: --pill-h controls shine inset (h/4) */
         .pill {
+            --pill-h: 20px;
+            --pill-shine-inset: calc(var(--pill-h) / 4);
             position: relative;
             font-size: 10px;
             font-weight: 600;
@@ -269,13 +271,12 @@
             transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, background 0.15s ease-out;
             transform: translateY(0);
         }
-        /* Shine highlight - inset by half the button height where curve begins */
         .pill::after {
             content: "";
             position: absolute;
             top: 1px;
-            left: 9px;
-            right: 9px;
+            left: var(--pill-shine-inset);
+            right: var(--pill-shine-inset);
             height: 50%;
             background: var(--gradient-shine);
             border-radius: 50px;
@@ -283,10 +284,9 @@
         }
         .pill:hover {
             transform: translateY(-1px);
-            /* Added: 0 1px hard shadow creates "hole" illusion beneath lifted button */
-            box-shadow: 
-                var(--shadow-drop-lg), 
-                var(--shadow-inset-highlight-bright), 
+            box-shadow:
+                var(--shadow-drop-lg),
+                var(--shadow-inset-highlight-bright),
                 var(--shadow-inset-depth),
                 0 1px 0 var(--border-btn);
             background: var(--gradient-button-hover);
@@ -303,7 +303,6 @@
             transform: translateY(0);
             background: var(--gradient-accent);
             color: var(--text-inverse);
-            /* Positive Y = shadow below text = light from above = pressed/indented look */
             text-shadow: 0 1px 1px var(--alpha-black-25);
             border-color: var(--accent-border);
             box-shadow: 0 1px 0 var(--alpha-white-10), var(--shadow-inset-pressed);
@@ -326,9 +325,6 @@
             text-shadow: 0 -1px 0 var(--alpha-black-25);
         }
         #share-btn::after {
-            /* Wider shine for wider button - use percentage to scale with width */
-            left: 12%;
-            right: 12%;
             background: linear-gradient(to bottom, var(--alpha-white-50), transparent);
         }
         #share-btn:hover {
@@ -340,6 +336,9 @@
         #share-btn.active {
             background: var(--gradient-accent);
             border-color: var(--accent-border);
+        }
+        #share-btn.active::after {
+            display: none;
         }
 
         /* Frutiger Aero traffic light buttons - no lift, just glow */
@@ -384,7 +383,7 @@
             border: 1px solid var(--traffic-amber-border);
             box-shadow: var(--traffic-shadow);
         }
-        .btn-yellow:hover { 
+        .btn-yellow:hover {
             box-shadow: var(--traffic-shadow-hover);
             filter: brightness(1.1);
         }
@@ -398,7 +397,7 @@
             border: 1px solid var(--traffic-green-border);
             box-shadow: var(--traffic-shadow);
         }
-        .btn-green:hover { 
+        .btn-green:hover {
             box-shadow: var(--traffic-shadow-hover);
             filter: brightness(1.1);
         }
@@ -412,7 +411,7 @@
             border: 1px solid var(--traffic-red-border);
             box-shadow: var(--traffic-shadow);
         }
-        .btn-red:hover { 
+        .btn-red:hover {
             box-shadow: var(--traffic-shadow-hover);
             filter: brightness(1.1);
         }
@@ -484,6 +483,31 @@
             overflow: hidden;
             background: var(--bg-content);
         }
+
+        /* Fallback textarea styling (when CodeMirror not loaded) */
+        .editor-content textarea {
+            width: 100%;
+            height: 100%;
+            border: none;
+            padding: 8px 12px;
+            margin: 0;
+            resize: none;
+            background: transparent;
+            color: var(--text);
+            font: 13px/1.5 var(--font-mono);
+            outline: none;
+            tab-size: 2;
+        }
+
+        /* Plain mode - show textareas */
+        .plain-mode .editor-content textarea {
+            display: block !important;
+        }
+
+        /* Offline mode - hide mode switcher, show OFFLINE label */
+        .offline-label { display: none; }
+        .offline-mode .mode-switcher { display: none !important; }
+        .offline-mode .offline-label { display: inline !important; }
 
         /* Editor fullscreen mode */
         .sidebar.fullscreen-mode .editor-box { display: none; }
@@ -595,7 +619,6 @@
         .segmented-control .pill.active {
             background: transparent;
             color: var(--text);
-            /* Slider is elevated, so text gets subtle emboss (light from above) */
             text-shadow: 0 1px 0 var(--alpha-white-50);
             box-shadow: none;
             transition: color 0.2s ease, text-shadow 0.2s ease;
@@ -624,25 +647,19 @@
             display: flex;
             flex-direction: column;
         }
-        .preview iframe {
-            width: 100%;
+        .iframe-container {
+            position: relative;
             flex: 1;
             min-height: 0;
+        }
+        .iframe-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             border: none;
             background: white;
-        }
-        .preview iframe.loading {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 1;
-        }
-        .preview iframe.ready {
-            opacity: 1;
-            z-index: 2;
-        }
-        .preview iframe.old {
-            z-index: 1;
         }
 
         /* Console panel */
@@ -664,11 +681,11 @@
             flex: 1 1 auto;
             border-radius: 0;
         }
-        .preview:has(.console-panel.fullscreen) iframe { display: none; }
+        .preview:has(.console-panel.fullscreen) .iframe-container { display: none; }
 
         .console-badge {
-            background: var(--alpha-black-10);
-            color: var(--text-muted);
+            background: var(--c-gray);
+            color: var(--text-inverse);
             font-family: var(--font-ui);
             font-size: 9px;
             font-weight: 600;
@@ -678,8 +695,8 @@
             text-align: center;
             margin-left: 6px;
         }
-        .console-badge:empty { display: none; }
-        .console-badge.has-errors { background: var(--console-error); color: var(--text-inverse); }
+
+        .console-badge.has-errors { background: var(--console-error); }
 
         .console-filters { margin-left: 8px; margin-right: 8px; }
 
@@ -696,32 +713,27 @@
             padding: 4px 12px;
             border-bottom: 1px solid var(--alpha-black-05);
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 8px;
         }
         .console-entry:hover { background: var(--alpha-black-05); }
 
-        .console-time { color: var(--text-faint); font-size: 10px; flex-shrink: 0; padding-top: 2px; }
-        .console-type { font-family: var(--font-ui); font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 50px; flex-shrink: 0; cursor: pointer; }
+        .console-time { color: var(--text-faint); font-size: 10px; flex-shrink: 0; }
+        .console-type { font-family: var(--font-ui); font-size: 10px; font-weight: 600; padding: 2px 10px; border-radius: 50px; flex-shrink: 0; cursor: pointer; border: 1px solid transparent; box-sizing: border-box; }
         .console-type.log { background: var(--alpha-black-10); color: var(--text-muted); }
         .console-type.info { background: var(--console-info); color: var(--text-inverse); }
         .console-type.warn { background: var(--console-warn); color: var(--text-inverse); }
         .console-type.error { background: var(--console-error); color: var(--text-inverse); }
-        .console-type.copied { 
-            background: var(--gradient-accent); 
-            color: var(--text-inverse); 
-            text-shadow: 0 1px 1px var(--alpha-black-25);
-            box-shadow: 0 1px 0 var(--alpha-white-10), var(--shadow-inset-pressed);
-        }
+        .console-type.copied { background: var(--gradient-accent); color: var(--text-inverse); border-color: var(--accent-border); }
 
         .console-message { color: var(--text); word-break: break-word; flex: 1; white-space: pre-wrap; }
         .console-entry.warn .console-message { color: var(--console-warn-text); }
         .console-entry.error .console-message { color: var(--console-error-text); }
 
-        .console-line { color: var(--accent); cursor: pointer; flex-shrink: 0; font-size: 11px; }
+        .console-line { color: var(--accent); cursor: pointer; flex-shrink: 0; font-size: 11px; align-self: center; }
         .console-line:hover { text-decoration: underline; }
 
-        .console-count { background: var(--accent); color: var(--text-inverse); font-family: var(--font-ui); font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 10px; margin-left: 6px; flex-shrink: 0; }
+        .console-count { background: var(--c-gray); color: var(--text-inverse); font-family: var(--font-ui); font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 10px; margin-left: 6px; flex-shrink: 0; }
 
         .console-empty { color: var(--text-faint); text-align: center; padding: 20px; font-style: italic; }
 
@@ -768,18 +780,18 @@
 
         /* Matched tag highlighting */
         .CodeMirror-matchingtag { background: var(--alpha-blue-10); }
-        
+
         /* ==============================================
            SYNTAX HIGHLIGHTING (unified across languages)
            Using palette colors for consistency
            ============================================== */
-        
+
         /* Keywords, tags, selectors (structural) */
         .cm-keyword { color: var(--c-blue-dark); font-weight: 600; }
         .cm-tag { color: var(--c-blue-dark); }
-        .cm-qualifier { color: var(--c-blue-dark); }  /* CSS class selectors */
+        .cm-qualifier { color: var(--c-blue-dark); }
         .cm-builtin { color: var(--c-blue-dark); }
-        
+
         /* Properties, attributes (descriptive) */
         .cm-attribute { color: var(--c-amber-dark); }
         .cm-property { color: var(--c-amber-dark); }
@@ -787,17 +799,17 @@
         .cm-variable-2 { color: var(--c-navy); }
         .cm-variable-3 { color: var(--c-blue); }
         .cm-def { color: var(--c-navy); }
-        
+
         /* Values, strings, numbers (data) */
         .cm-string { color: var(--c-green-dark); }
         .cm-string-2 { color: var(--c-green-dark); }
         .cm-number { color: var(--c-amber); }
         .cm-atom { color: var(--c-amber); }
-        
+
         /* Comments, meta (secondary) */
         .cm-comment { color: var(--c-gray); font-style: italic; }
         .cm-meta { color: var(--c-gray); }
-        
+
         /* Punctuation */
         .cm-bracket { color: var(--c-gray-warm); }
         .cm-operator { color: var(--c-gray-warm); }
@@ -843,7 +855,7 @@
 
         body.layout-mobile.view-console .sidebar { display: none; }
         body.layout-mobile.view-console .preview { display: flex; z-index: 10; }
-        body.layout-mobile.view-console .preview iframe { display: none; }
+        body.layout-mobile.view-console .iframe-container { display: none; }
         /* Preview header bar hidden in console view (it uses data-show="mobile" so it's shown,
            but we want it hidden when viewing console) */
         body.layout-mobile.view-console .preview > .header-bar[data-show="mobile"] { display: none !important; }
@@ -902,6 +914,7 @@
             --header-height: 52px;
         }
         body.layout-mobile .pill {
+            --pill-h: 40px;  /* Mobile: larger touch targets */
             padding: 13px 12px;
             border-radius: 9999px;
         }
@@ -952,7 +965,16 @@
                     </div>
                 </div>
             </div>
-            <div class="editor-content"><textarea id="code-html"></textarea></div>
+            <div class="editor-content"><textarea id="code-html"><div class="card">
+  <img src="https://slightknack.dev/content/path.jpg">
+  <div class="content">
+    <div>
+      <h1>AeroCode</h1>
+      <p><a href="https://isaac.sh/about" target="_blank">Isaac Clayton</a> · <a href="https://github.com/slightknack" target="_blank">GitHub</a></p>
+    </div>
+    <button>Download Offline Editor</button>
+  </div>
+</div></textarea></div>
         </div>
 
         <div class="editor-box panel" id="box-css">
@@ -975,7 +997,74 @@
                     </div>
                 </div>
             </div>
-            <div class="editor-content"><textarea id="code-css"></textarea></div>
+            <div class="editor-content"><textarea id="code-css">.card {
+  max-width: 500px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #fffb;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 40px #0002, inset 0 1px 0 #fff;
+}
+
+.card img { width: 100%; display: block; }
+
+.content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  gap: 16px;
+}
+
+h1 { margin: 0; font: 700 26px system-ui; color: #172038; }
+p { margin: 2px 0 0; font: 14px system-ui; color: #577277; }
+a { color: inherit; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+button {
+  padding: 12px 24px;
+  font: 600 15px system-ui;
+  color: #fff;
+  border: none;
+  border-radius: 100px;
+  background: linear-gradient(to bottom, #29adff, #4f8fba);
+  border-bottom: 3px solid #3c5e8b;
+  box-shadow: 0 4px 12px #29adff55, inset 0 1px 0 #fff6;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+button:hover { border-bottom-width: 5px; margin-top: -2px; }
+button:active { border-bottom-width: 1px; margin-top: 2px; }
+
+/* Page layout */
+* { box-sizing: border-box; }
+body {
+  min-height: 100vh;
+  margin: 0;
+  padding: 16px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #a8edea, #fed6e3);
+}
+
+/* Animated grid background */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg, #0001 0 1px, transparent 1px 24px
+  ), repeating-linear-gradient(
+    90deg, #0001 0 1px, transparent 1px 24px
+  );
+  animation: scroll 4s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes scroll {
+  to { background-position: 24px 24px; }
+}</textarea></div>
         </div>
 
         <div class="editor-box panel" id="box-js">
@@ -998,16 +1087,27 @@
                     </div>
                 </div>
             </div>
-            <div class="editor-content"><textarea id="code-js"></textarea></div>
+            <div class="editor-content"><textarea id="code-js">console.log("Welcome to AeroCode!");
+
+document.querySelector('button').onclick = () => {
+  const a = document.createElement('a');
+  a.href = 'https://slightknack.dev/aerocode.html';
+  a.download = 'aerocode.html';
+  a.click();
+};</textarea></div>
         </div>
 
         <div class="bottom-toolbar header-bar">
-            <div class="mode-switcher segmented-control">
-                <span class="pill active" data-keymap="vim">VIM</span>
-                <span class="pill" data-keymap="default">NORMAL</span>
+            <div style="display: flex; align-items: center;">
+                <div class="mode-switcher segmented-control">
+                    <span class="pill active" data-keymap="vim">VIM</span>
+                    <span class="pill" data-keymap="default">NORMAL</span>
+                    <span class="pill" data-keymap="plain">PLAIN</span>
+                </div>
+                <span class="label offline-label">OFFLINE</span>
+                <span class="text-btn" id="layout-btn">mobile</span>
             </div>
             <div style="display: flex; gap: 4px;">
-                <span class="pill" id="layout-btn">MOBILE</span>
                 <span class="pill" id="new-btn">NEW</span>
                 <span class="pill" id="share-btn">SHARE</span>
             </div>
@@ -1023,7 +1123,9 @@
                 <span class="pill" data-mobile-view="console">CONSOLE</span>
             </div>
         </div>
-        <iframe id="preview-frame" sandbox="allow-scripts allow-modals"></iframe>
+        <div id="iframe-container" class="iframe-container">
+            <iframe id="preview-frame" sandbox="allow-scripts allow-modals allow-same-origin"></iframe>
+        </div>
         <div id="console-panel" class="console-panel panel">
             <div class="header-bar" id="console-header">
                 <div style="display:flex;align-items:center">
@@ -1088,126 +1190,16 @@
     const COLLAPSED_H = HEADER_H;
     const GAP = 8;
     const TOOLBAR_H = HEADER_H;
-    const MIN_SIDEBAR_W = 350;
+    const MIN_SIDEBAR_W = 375;
     const MIN_PREVIEW_W = 425;
     const DEFAULT_SIDEBAR_W = 500;
     const STRIP_W = 16;
 
+    // Defaults read from textarea content (also works offline without JS)
     const DEFAULTS = {
-        html: `<div class="card">
-  <img src="https://slightknack.dev/content/path.jpg">
-  <div class="content">
-    <div>
-      <h1>AeroCode</h1>
-      <p><a href="https://isaac.sh/about" target="_blank">Isaac Clayton</a> · <a href="https://github.com/slightknack" target="_blank">GitHub</a></p>
-    </div>
-    <button>Download</button>
-  </div>
-</div>`,
-        css: `/*
-  Safe web fonts:
-  - system-ui, -apple-system (system default)
-  - Georgia, Times New Roman (serif)
-  - Arial, Helvetica, Verdana (sans-serif)
-  - Courier New, monospace (mono)
-*/
-
-* { box-sizing: border-box; }
-
-body {
-  min-height: 100vh;
-  margin: 0;
-  padding: 16px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, #a8edea, #fed6e3);
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg, #0001 0 1px, transparent 1px 24px
-  ), repeating-linear-gradient(
-    90deg, #0001 0 1px, transparent 1px 24px
-  );
-  animation: scroll 4s linear infinite;
-  pointer-events: none;
-}
-
-@keyframes scroll {
-  to { background-position: 24px 24px; }
-}
-
-.card {
-  max-width: 500px;
-  border-radius: 20px;
-  overflow: hidden;
-  background: #fffb;
-  backdrop-filter: blur(20px);
-  box-shadow: 0 20px 40px #0002, inset 0 1px 0 #fff;
-}
-
-.card img { width: 100%; display: block; }
-
-.content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 24px;
-  gap: 16px;
-}
-
-h1 {
-  margin: 0;
-  font: 700 26px system-ui;
-  color: #172038;
-}
-
-p {
-  margin: 2px 0 0;
-  font: 14px system-ui;
-  color: #577277;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-a:hover { text-decoration: underline; }
-
-button {
-  padding: 12px 24px;
-  font: 600 15px system-ui;
-  color: #fff;
-  border: none;
-  border-radius: 100px;
-  background: linear-gradient(to bottom, #29adff, #4f8fba);
-  border-bottom: 3px solid #3c5e8b;
-  box-shadow: 0 4px 12px #29adff55, inset 0 1px 0 #fff6;
-  cursor: pointer;
-  transition: 0.15s;
-}
-
-button:hover {
-  border-bottom-width: 5px;
-  margin-top: -2px;
-}
-
-button:active {
-  border-bottom-width: 1px;
-  margin-top: 2px;
-}`,
-        js: `console.log("Welcome to AeroCode!");
-
-document.querySelector('button').onclick = () => {
-  const a = document.createElement('a');
-  a.href = 'https://slightknack.dev/aerocode.html';
-  a.download = 'aerocode.html';
-  a.click();
-};`
+        html: document.getElementById('code-html').value.trim(),
+        css: document.getElementById('code-css').value.trim(),
+        js: document.getElementById('code-js').value.trim()
     };
 
     // Application state (declarative model)
@@ -1220,8 +1212,9 @@ document.querySelector('button').onclick = () => {
         minimized: { html: false, css: false, js: false },
         heights: { html: 200, css: 200, js: 200 },
         clipboard: null,  // { type: 'share' | 'code' | 'console' | 'console-entry', lang?: string, entryIndex?: number } or null
-        mobileView: 'code',  // 'code' | 'preview' | 'console' - which view is active on mobile
-        layout: 'auto'  // 'auto' | 'mobile' | 'desktop' - layout mode
+        mobileView: 'preview',  // 'code' | 'preview' | 'console' - which view is active on mobile
+        layout: 'auto',  // 'auto' | 'mobile' | 'desktop' - layout mode
+        editorMode: 'vim'  // 'vim' | 'default' | 'plain'
     };
 
     // Layout detection
@@ -1260,7 +1253,64 @@ document.querySelector('button').onclick = () => {
     let errorMarks = [];
 
     const dom = {};
-    const editors = {};
+    const editors = {};  // CodeMirror instances (or plain wrappers in offline mode)
+
+    // Create plain textarea wrapper with CodeMirror-like API
+    function createPlainEditor(lang) {
+        const textarea = document.getElementById(`code-${lang}`);
+        return {
+            getValue: () => textarea.value,
+            setValue: (val) => { textarea.value = val; },
+            refresh: () => {},
+            focus: () => textarea.focus(),
+            setOption: () => {},
+            on: (event, handler) => {
+                if (event === 'change') {
+                    textarea.addEventListener('input', handler);
+                }
+            },
+            getWrapperElement: () => textarea.parentElement
+        };
+    }
+
+    // Switch between VIM, NORMAL, and PLAIN editor modes
+    function switchEditorMode(mode) {
+        const prevMode = state.editorMode;
+        state.editorMode = mode;
+
+        if (mode === 'plain') {
+            // Switch to plain textareas
+            document.body.classList.add('plain-mode');
+            PANELS.forEach(lang => {
+                const textarea = document.getElementById(`code-${lang}`);
+                // Sync content from CodeMirror to textarea
+                if (hasCodeMirror && editors[lang]) {
+                    textarea.value = editors[lang].getValue();
+                }
+                // Show textarea, hide CodeMirror
+                textarea.style.display = 'block';
+                if (editors[lang]) {
+                    editors[lang].getWrapperElement().style.display = 'none';
+                }
+            });
+        } else {
+            // Switch to CodeMirror (if available)
+            document.body.classList.remove('plain-mode');
+            if (hasCodeMirror) {
+                PANELS.forEach(lang => {
+                    const textarea = document.getElementById(`code-${lang}`);
+                    // Sync content from textarea to CodeMirror
+                    if (editors[lang]) {
+                        editors[lang].setValue(textarea.value);
+                        editors[lang].getWrapperElement().style.display = '';
+                        editors[lang].setOption('keyMap', mode);
+                        editors[lang].refresh();
+                    }
+                    textarea.style.display = 'none';
+                });
+            }
+        }
+    }
 
     // Geometry helpers
     function getUsableHeight() {
@@ -1435,7 +1485,7 @@ document.querySelector('button').onclick = () => {
         // Layout button - shows what clicking will toggle TO
         const layoutBtn = document.getElementById('layout-btn');
         const currentlyMobile = isMobile();
-        layoutBtn.textContent = currentlyMobile ? 'DESKTOP' : 'MOBILE';
+        layoutBtn.textContent = currentlyMobile ? 'desktop' : 'mobile';
         // Show active state when layout is forced (not auto)
         layoutBtn.classList.toggle('active', state.layout !== 'auto');
 
@@ -1527,9 +1577,6 @@ document.querySelector('button').onclick = () => {
         }
     }
 
-    // Drag computation: dragging a header moves it and pushes other panels
-    // Dragging up: grow this panel by shrinking panels above
-    // Dragging down: shrink this panel (and panels below get pushed/shrunk)
     function computeDragState(startState, draggedPanel, delta) {
         const panelIdx = PANELS.indexOf(draggedPanel);
         const newState = {
@@ -1540,10 +1587,7 @@ document.querySelector('button').onclick = () => {
         if (startState.minimized[draggedPanel]) return newState;
 
         if (delta < 0) {
-            // Dragging up: grow this panel by taking from panels above
             let toGrow = -delta;
-
-            // Take space from panels above, starting from nearest
             for (let i = panelIdx - 1; i >= 0 && toGrow > 0; i--) {
                 const p = PANELS[i];
                 if (startState.minimized[p]) continue;
@@ -1709,8 +1753,8 @@ document.querySelector('button').onclick = () => {
         // Mode switcher specific logic (keymap change)
         document.querySelectorAll('.mode-switcher .pill').forEach(tag => {
             tag.addEventListener('click', () => {
-                const keymap = tag.dataset.keymap;
-                Object.values(editors).forEach(cm => cm.setOption('keyMap', keymap));
+                const mode = tag.dataset.keymap;
+                switchEditorMode(mode);
             });
         });
 
@@ -2070,9 +2114,6 @@ document.querySelector('button').onclick = () => {
 })();`;
     }
 
-    // Track pending iframe to cancel if new update comes in
-    let pendingFrame = null;
-
     function updatePreview() {
         // Increment generation to ignore messages from previous iframe executions
         const generation = ++previewGeneration;
@@ -2082,77 +2123,41 @@ document.querySelector('button').onclick = () => {
         clearErrorMarks();
         renderConsole();
 
-        // Cancel any pending iframe that hasn't loaded yet
-        if (pendingFrame) {
-            pendingFrame.remove();
-            pendingFrame = null;
-        }
+        // Get content from appropriate source based on editor mode
+        const getContent = (lang) => {
+            if (state.editorMode === 'plain') {
+                return document.getElementById(`code-${lang}`).value;
+            }
+            return editors[lang].getValue();
+        };
+        const html = getContent('html');
+        const css = getContent('css');
+        const js = getContent('js');
 
-        const html = editors.html.getValue();
-        const css = editors.css.getValue();
-        const js = editors.js.getValue();
+        // Encode CSS and JS as data URIs to isolate from HTML parsing
+        const cssDataUri = 'data:text/css,' + encodeURIComponent(css);
+        const jsDataUri = 'data:text/javascript,' + encodeURIComponent(js + '\n//# sourceURL=usercode.js');
 
-        // Build full document - use regular script (not module) so window.onerror catches errors
+        // Build document: interceptor runs immediately, user JS deferred until DOM ready
         const doc = ['<!DOCTYPE html>',
             '<html>',
             '<head>',
-            '<style>' + css + '</style>',
+            '<link rel="stylesheet" href="' + cssDataUri + '">',
             '<script>' + buildInterceptor(generation) + '<\/script>',
+            '<script defer src="' + jsDataUri + '"><\/script>',
             '</head>',
             '<body>',
             html,
-            '<script>',
-            '//# sourceURL=usercode.js',
-            js,
-            '<\/script>',
             '</body>',
             '</html>'
         ].join('\n');
 
-        // Double-buffer: create new iframe, load content, swap when ready
-        const newFrame = document.createElement('iframe');
-        newFrame.sandbox = 'allow-scripts allow-modals';
-        newFrame.className = 'loading';
-        pendingFrame = newFrame;
-
-        // Mark old iframe
-        if (dom.preview) {
-            dom.preview.classList.add('old');
-        }
-        const oldFrame = dom.preview;
-
-        // Insert before console panel
-        const consolePanel = document.getElementById('console-panel');
-        dom.previewContainer.insertBefore(newFrame, consolePanel);
-
-        // When loaded, wait a frame for render, then swap
-        newFrame.onload = () => {
-            // Only swap if this is still the current pending frame
-            if (pendingFrame !== newFrame) return;
-
-            // Wait for render to complete (requestAnimationFrame x2 for paint)
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    if (pendingFrame !== newFrame) return;
-
-                    // Make new frame visible
-                    newFrame.classList.remove('loading');
-                    newFrame.classList.add('ready');
-
-                    // Remove old iframe
-                    if (oldFrame && oldFrame !== newFrame) {
-                        oldFrame.remove();
-                    }
-
-                    // Update reference
-                    dom.preview = newFrame;
-                    pendingFrame = null;
-                });
-            });
-        };
-
-        // Set content (triggers load)
-        newFrame.srcdoc = doc;
+        // Rewrite existing iframe's document (no flash - same iframe stays visible)
+        const frame = dom.preview;
+        const frameDoc = frame.contentDocument || frame.contentWindow.document;
+        frameDoc.open();
+        frameDoc.write(doc);
+        frameDoc.close();
 
         scheduleUrlUpdate();
     }
@@ -2164,13 +2169,19 @@ document.querySelector('button').onclick = () => {
 
     async function updateUrl() {
         try {
-            const data = {
-                h: editors.html.getValue(),
-                c: editors.css.getValue(),
-                j: editors.js.getValue(),
-                s: state.collapsed ? 0 : 1,
-                f: state.fullscreen || ''
-            };
+            const h = editors.html.getValue();
+            const c = editors.css.getValue();
+            const j = editors.js.getValue();
+
+            // If content matches defaults, clear the hash
+            if (h === DEFAULTS.html && c === DEFAULTS.css && j === DEFAULTS.js) {
+                history.replaceState(null, '', location.pathname);
+                return;
+            }
+
+            // p=1 means "start in preview mode" (mobile: preview tab, desktop: sidebar collapsed)
+            const previewMode = isMobile() ? (state.mobileView === 'preview') : state.collapsed;
+            const data = { h, c, j, p: previewMode ? 1 : 0 };
             const json = JSON.stringify(data);
             const compressed = await new Response(new Blob([json]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer();
             const encoded = btoa(String.fromCharCode(...new Uint8Array(compressed)));
@@ -2190,8 +2201,16 @@ document.querySelector('button').onclick = () => {
             if (data.c !== undefined) editors.css.setValue(data.c);
             if (data.j !== undefined) editors.js.setValue(data.j);
 
-            if (data.s !== undefined) state.collapsed = data.s === 0;
-            if (data.f !== undefined) state.fullscreen = data.f || null;
+            // Apply preview mode flag (backwards compatible with old s/f format)
+            if (data.p !== undefined) {
+                const previewMode = data.p === 1;
+                state.mobileView = previewMode ? 'preview' : 'code';
+                state.collapsed = previewMode;
+            } else {
+                // Legacy support: convert old s/f to new p behavior
+                if (data.s !== undefined) state.collapsed = data.s === 0;
+                state.mobileView = state.collapsed ? 'preview' : 'code';
+            }
 
             render();
             return true;
@@ -2280,7 +2299,7 @@ document.querySelector('button').onclick = () => {
         // Update badge
         const errorCount = consoleState.entries.filter(e => e.type === 'error').length;
         const totalCount = consoleState.entries.length;
-        badge.textContent = totalCount > 0 ? totalCount : '';
+        badge.textContent = totalCount;
         badge.classList.toggle('has-errors', errorCount > 0);
 
         // Update filter buttons
@@ -2407,12 +2426,23 @@ document.querySelector('button').onclick = () => {
         }
     });
 
-    // Init
+    // Check if CodeMirror loaded
+    const hasCodeMirror = typeof CodeMirror !== 'undefined';
+
+    function onCodeChange() {
+        updatePreview();
+        if (state.clipboard !== null) {
+            state.clipboard = null;
+            render();
+        }
+    }
+
     function init() {
         dom.sidebar = document.getElementById('sidebar');
         dom.strip = document.getElementById('sidebar-strip');
         dom.previewStrip = document.getElementById('preview-strip');
         dom.previewContainer = document.querySelector('.preview');
+        dom.iframeContainer = document.getElementById('iframe-container');
         dom.overlay = document.getElementById('drag-overlay');
         dom.preview = document.getElementById('preview-frame');
         dom.resizer = document.getElementById('sidebar-resizer');
@@ -2422,6 +2452,34 @@ document.querySelector('button').onclick = () => {
             js: document.getElementById('box-js')
         };
 
+        if (hasCodeMirror) {
+            initWithCodeMirror();
+        } else {
+            initFallback();
+        }
+
+        // Textarea input handlers (for plain mode or offline)
+        PANELS.forEach(lang => {
+            document.getElementById(`code-${lang}`).addEventListener('input', () => {
+                if (state.editorMode === 'plain') onCodeChange();
+            });
+        });
+
+        initializeHeights();
+        bindEvents();
+        render();
+        renderConsole();
+
+        loadFromHash().then(() => {
+            updatePreview();
+            // CodeMirror change handlers
+            if (hasCodeMirror) {
+                PANELS.forEach(lang => editors[lang].on('change', onCodeChange));
+            }
+        });
+    }
+
+    function initWithCodeMirror() {
         const modes = { html: 'htmlmixed', css: 'css', js: 'javascript' };
         const triggerChars = {
             html: ['<', '/', '"', '=', ' '],
@@ -2435,7 +2493,6 @@ document.querySelector('button').onclick = () => {
 
             const editorConfig = {
                 mode: modes[lang],
-                
                 lineNumbers: true,
                 keyMap: 'vim',
                 extraKeys: {
@@ -2491,26 +2548,20 @@ document.querySelector('button').onclick = () => {
             });
 
             editors[lang] = cm;
+
+            // Hide textarea initially (CodeMirror is active)
+            document.getElementById(`code-${lang}`).style.display = 'none';
         });
+    }
 
-        initializeHeights();
-        bindEvents();
-        render();
-        renderConsole();
+    function initFallback() {
+        state.editorMode = 'plain';
+        document.body.classList.add('offline-mode', 'plain-mode');
 
-        // Load from hash, then run first preview, then bind change handlers
-        loadFromHash().then(() => {
-            updatePreview();
-
-            PANELS.forEach(lang => {
-                editors[lang].on('change', () => {
-                    updatePreview();
-                    if (state.clipboard !== null) {
-                        state.clipboard = null;
-                        render();
-                    }
-                });
-            });
+        PANELS.forEach(lang => {
+            const textarea = document.getElementById(`code-${lang}`);
+            textarea.value = DEFAULTS[lang];
+            editors[lang] = createPlainEditor(lang);
         });
     }
 
