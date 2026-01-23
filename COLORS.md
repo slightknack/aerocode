@@ -1,54 +1,6 @@
 # Colors
 
-<svg viewBox="0 0 620 140" xmlns="http://www.w3.org/2000/svg">
-  <!-- Neutrals -->
-  <rect x="0" y="0" width="40" height="40" fill="#ffffff" stroke="#ccc" stroke-width="1"/>
-  <rect x="40" y="0" width="40" height="40" fill="#f5f5f5"/>
-  <rect x="80" y="0" width="40" height="40" fill="#c7cfcc"/>
-  <rect x="120" y="0" width="40" height="40" fill="#819796"/>
-  <rect x="160" y="0" width="40" height="40" fill="#577277"/>
-  <rect x="200" y="0" width="40" height="40" fill="#253a5e"/>
-  <rect x="240" y="0" width="40" height="40" fill="#172038"/>
-  <!-- Blues -->
-  <rect x="300" y="0" width="40" height="40" fill="#73bed3"/>
-  <rect x="340" y="0" width="40" height="40" fill="#4f8fba"/>
-  <rect x="380" y="0" width="40" height="40" fill="#3c5e8b"/>
-  <rect x="420" y="0" width="40" height="40" fill="#29adff"/>
-  <!-- Greens -->
-  <rect x="0" y="50" width="40" height="40" fill="#0ced6a"/>
-  <rect x="40" y="50" width="40" height="40" fill="#00d74e"/>
-  <rect x="80" y="50" width="40" height="40" fill="#008f17"/>
-  <!-- Ambers -->
-  <rect x="140" y="50" width="40" height="40" fill="#ffcf45"/>
-  <rect x="180" y="50" width="40" height="40" fill="#ffbd2c"/>
-  <rect x="220" y="50" width="40" height="40" fill="#d37800"/>
-  <!-- Reds -->
-  <rect x="280" y="50" width="40" height="40" fill="#ff8680"/>
-  <rect x="320" y="50" width="40" height="40" fill="#ff5a5b"/>
-  <rect x="360" y="50" width="40" height="40" fill="#c62a34"/>
-  <!-- Cyans -->
-  <rect x="420" y="50" width="40" height="40" fill="#d7f0ef"/>
-  <rect x="460" y="50" width="40" height="40" fill="#a8edea"/>
-  <rect x="500" y="50" width="40" height="40" fill="#39dcd5"/>
-  <!-- Pinks -->
-  <rect x="560" y="50" width="40" height="40" fill="#f9eff2"/>
-  <rect x="600" y="50" width="20" height="40" fill="#fed6e3"/>
-  <rect x="560" y="0" width="40" height="40" fill="#fed6e3"/>
-  <rect x="600" y="0" width="20" height="40" fill="#f07da2"/>
-  <!-- Button Grays -->
-  <rect x="480" y="0" width="25" height="40" fill="#e8e8e8"/>
-  <rect x="505" y="0" width="25" height="40" fill="#e0e0e0"/>
-  <rect x="530" y="0" width="25" height="40" fill="#d8d8d8"/>
-  <!-- Labels -->
-  <text x="120" y="110" font-family="system-ui,sans-serif" font-size="9" fill="#577277" text-anchor="middle">neutrals</text>
-  <text x="360" y="110" font-family="system-ui,sans-serif" font-size="9" fill="#577277" text-anchor="middle">blues</text>
-  <text x="505" y="110" font-family="system-ui,sans-serif" font-size="9" fill="#577277" text-anchor="middle">grays</text>
-  <text x="40" y="135" font-family="system-ui,sans-serif" font-size="9" fill="#577277" text-anchor="middle">greens</text>
-  <text x="180" y="135" font-family="system-ui,sans-serif" font-size="9" fill="#577277" text-anchor="middle">ambers</text>
-  <text x="320" y="135" font-family="system-ui,sans-serif" font-size="9" fill="#577277" text-anchor="middle">reds</text>
-  <text x="460" y="135" font-family="system-ui,sans-serif" font-size="9" fill="#577277" text-anchor="middle">cyans</text>
-  <text x="580" y="135" font-family="system-ui,sans-serif" font-size="9" fill="#577277" text-anchor="middle">pinks</text>
-</svg>
+![Color palette](colors.svg)
 
 ## Rationale
 
