@@ -1,5 +1,5 @@
 ---
-model:  claude-opus-4.5
+model:  claude-4.5-opus
 date:   2026-01-23
 driver: Isaac Clayton
 ---
