@@ -6,7 +6,7 @@ driver: Isaac Clayton
 
 # Colors
 
-![Color palette](colors.svg)
+![Color palette](palette.svg)
 
 ## Rationale
 
