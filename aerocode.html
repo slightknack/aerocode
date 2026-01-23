@@ -12,28 +12,174 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AeroCode</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/neat.min.css">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.css">
     <style>
         :root {
-            /* Colors */
-            --accent: #0078d7;
-            --accent-hover: #005a9e;
-            --accent-border: #0066b8;
-            --text: #333;
-            --text-muted: #666;
-            --text-faint: #999;
-            --border-light: rgba(255, 255, 255, 0.9);
-            --border-dark: rgba(0, 0, 0, 0.08);
-            --bg-glass: rgba(255, 255, 255, 0.75);
-            --bg-content: rgba(255, 255, 255, 0.5);
-            --bg-header: linear-gradient(to bottom, #fff 0%, #f1f1f1 100%);
-            --shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
-            /* Layout */
-            --header-height: 28px;
+            /* =====================================================
+               COLOR MODEL - Comprehensive Aqua/Aero System
+               
+               THEORY:
+               1. BASE PALETTE: 12 core colors from Apollo/PICO-8
+               2. ALPHA SCALE: Quantized to 6 steps (10/25/50/75/90/95)
+               3. SEMANTIC TOKENS: All derived from base + alpha
+               4. NO INLINE COLORS: Everything references variables
+               
+               Perceptual notes:
+               - Traffic lights use LCH-balanced colors for equal brightness
+               - Blues are the primary accent (Aqua heritage)
+               - Warm tones (peach/teal) for background gradient
+               ===================================================== */
+            
+            /* --- Base Palette (12 colors) --- */
+            --c-white: #ffffff;
+            --c-offwhite: #f5f5f5;
+            --c-silver: #c7cfcc;
+            --c-gray: #819796;
+            --c-gray-warm: #577277;
+            --c-dark: #172038;
+            --c-navy: #253a5e;
+            
+            --c-blue: #4f8fba;
+            --c-blue-light: #73bed3;
+            --c-blue-dark: #3c5e8b;
+            --c-blue-bright: #29adff;
+            
+            --c-green: #00d74e;
+            --c-green-light: #0ced6a;
+            --c-green-dark: #008f17;
+            
+            --c-amber: #ffbd2c;
+            --c-amber-light: #ffcf45;
+            --c-amber-dark: #d37800;
+            
+            --c-red: #ff5a5b;
+            --c-red-light: #ff8680;
+            --c-red-dark: #c62a34;
+            
+            --c-peach: #fed6e3;
+            --c-teal: #a8edea;
+            
+            /* --- Alpha Scale (quantized to 6 steps) --- */
+            --alpha-white-95: rgba(255, 255, 255, 0.95);
+            --alpha-white-90: rgba(255, 255, 255, 0.9);
+            --alpha-white-75: rgba(255, 255, 255, 0.75);
+            --alpha-white-50: rgba(255, 255, 255, 0.5);
+            --alpha-white-25: rgba(255, 255, 255, 0.25);
+            --alpha-white-10: rgba(255, 255, 255, 0.1);
+            
+            --alpha-black-50: rgba(0, 0, 0, 0.5);
+            --alpha-black-25: rgba(0, 0, 0, 0.25);
+            --alpha-black-10: rgba(0, 0, 0, 0.1);
+            --alpha-black-05: rgba(0, 0, 0, 0.05);
+            
+            /* Colored alphas (for highlights) */
+            --alpha-blue-10: rgba(79, 143, 186, 0.1);
+            --alpha-red-10: rgba(255, 90, 91, 0.1);
+            
+            /* --- Derived: Button grays (from white with black overlay) --- */
+            --c-btn-light: #e8e8e8;
+            --c-btn-mid: #e0e0e0;
+            --c-btn-dark: #d8d8d8;
+            
+            /* =====================================================
+               SEMANTIC TOKENS - Composed from palette
+               ===================================================== */
+            
+            /* --- Text --- */
+            --text: var(--c-dark);
+            --text-muted: var(--c-gray-warm);
+            --text-faint: var(--c-gray);
+            --text-inverse: var(--c-white);
+            
+            /* --- Backgrounds --- */
+            --bg-body-grad-1: var(--c-teal);
+            --bg-body-grad-2: var(--c-peach);
+            --bg-glass: var(--alpha-white-75);
+            --bg-content: var(--alpha-white-50);
+            --bg-header: linear-gradient(to bottom, var(--c-white) 0%, var(--c-offwhite) 100%);
+            --bg-gutter: var(--alpha-white-95);
+            --bg-sidebar: linear-gradient(to bottom, var(--alpha-white-50) 0%, var(--alpha-white-25) 100%);
+            
+            /* --- Borders --- */
+            --border-light: var(--alpha-white-90);
+            --border-dark: var(--alpha-black-10);
+            --border-btn: var(--alpha-black-10);
+            
+            /* --- Accent (interactive) --- */
+            --accent: var(--c-blue);
+            --accent-hover: var(--c-blue-dark);
+            --accent-border: var(--c-navy);
+            
+            /* =====================================================
+               COMPONENT TOKENS
+               ===================================================== */
+            
+            /* --- Shadows (using quantized alpha) --- */
+            --shadow-drop-sm: 0 1px 2px var(--alpha-black-10);
+            --shadow-drop-md: 0 2px 4px var(--alpha-black-10);
+            --shadow-drop-lg: 0 3px 6px var(--alpha-black-25);
+            --shadow-inset-highlight: 0 1px 0 var(--alpha-white-90) inset;
+            --shadow-inset-highlight-bright: 0 1px 0 var(--c-white) inset;
+            --shadow-inset-depth: 0 -1px 2px var(--alpha-black-10) inset;
+            --shadow-inset-pressed: 0 2px 3px var(--alpha-black-25) inset;
+            --shadow-panel: 0 2px 8px var(--alpha-black-05), 0 1px 2px var(--alpha-black-05);
+            --shadow-subtle: 0 4px 10px var(--alpha-black-05);
+            
+            /* --- Button Gradients --- */
+            --gradient-button: linear-gradient(to bottom, var(--c-white) 0%, var(--c-btn-mid) 100%);
+            --gradient-button-hover: linear-gradient(to bottom, var(--c-white) 0%, var(--c-btn-light) 100%);
+            --gradient-button-pressed: linear-gradient(to bottom, var(--c-btn-dark) 0%, var(--c-btn-light) 100%);
+            --gradient-accent: linear-gradient(to bottom, var(--c-blue) 0%, var(--c-blue-dark) 100%);
+            --gradient-accent-hover: linear-gradient(to bottom, var(--c-blue-light) 0%, var(--c-blue) 100%);
+            --gradient-shine: linear-gradient(to bottom, var(--alpha-white-75), transparent);
+            --gradient-shine-pressed: linear-gradient(to top, var(--alpha-white-25), transparent);
+            
+            /* --- Traffic Lights (perceptually balanced) --- */
+            --traffic-red: linear-gradient(to bottom, var(--c-red-light) 0%, var(--c-red) 100%);
+            --traffic-red-border: var(--c-red-dark);
+            --traffic-red-pressed: linear-gradient(to bottom, var(--c-red-dark) 0%, var(--c-red) 100%);
+            --traffic-amber: linear-gradient(to bottom, var(--c-amber-light) 0%, var(--c-amber) 100%);
+            --traffic-amber-border: var(--c-amber-dark);
+            --traffic-amber-pressed: linear-gradient(to bottom, var(--c-amber-dark) 0%, var(--c-amber) 100%);
+            --traffic-green: linear-gradient(to bottom, var(--c-green-light) 0%, var(--c-green) 100%);
+            --traffic-green-border: var(--c-green-dark);
+            --traffic-green-pressed: linear-gradient(to bottom, var(--c-green-dark) 0%, var(--c-green) 100%);
+            
+            /* --- Share Button (uses blue-bright from palette) --- */
+            --c-share-light: #6ac1ff;
+            --c-share-dark: #0074c3;
+            --gradient-share: linear-gradient(to bottom, var(--c-share-light) 0%, var(--c-blue-bright) 100%);
+            --gradient-share-hover: linear-gradient(to bottom, var(--c-blue-light) 0%, var(--c-share-light) 100%);
+            --gradient-share-pressed: linear-gradient(to bottom, var(--c-share-dark) 0%, var(--c-blue-bright) 100%);
+            --share-border: var(--c-share-dark);
+            
+            /* --- Console badges (derived from palette) --- */
+            --console-info: var(--c-blue);
+            --console-warn: var(--c-amber);
+            --console-warn-text: var(--c-amber-dark);
+            --console-error: var(--c-red);
+            --console-error-text: var(--c-red-dark);
+            
+            /* --- Code hints (derived from palette) --- */
+            --hint-bg-from: var(--c-blue-light);
+            --hint-bg-to: var(--c-blue);
+            
+            /* --- Strips (resize handles) --- */
+            --strip-bg: var(--c-blue);
+            --strip-bg-hover: var(--c-blue-dark);
+            --strip-border: var(--c-blue-dark);
+            
+            /* =====================================================
+               LAYOUT
+               ===================================================== */
+            --header-height: 32px;
             --gap: 8px;
             --radius: 10px;
-            /* Fonts */
+            
+            /* =====================================================
+               FONTS
+               ===================================================== */
             --font-mono: 'Menlo', 'Consolas', monospace;
             --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
@@ -47,8 +193,8 @@
             overflow: hidden;
             font-family: var(--font-ui);
             background:
-                radial-gradient(circle at 10% 10%, rgba(255,255,255,0.8) 0%, transparent 40%),
-                linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+                radial-gradient(circle at 10% 10%, var(--alpha-white-75) 0%, transparent 40%),
+                linear-gradient(135deg, var(--bg-body-grad-1) 0%, var(--bg-body-grad-2) 100%);
         }
 
         .hidden { display: none !important; }
@@ -71,7 +217,7 @@
             background: var(--bg-glass);
             border: 1px solid var(--border-light);
             border-radius: var(--radius);
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-panel);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -83,52 +229,198 @@
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            text-shadow: 0 1px 0 #fff;
+            text-shadow: 0 1px 0 var(--c-white);
         }
 
-        .controls { display: flex; gap: 6px; align-items: center; }
+        .controls { display: flex; gap: 6px; align-items: center; position: relative; }
+
+        /* Red exit button overlays green fullscreen button */
+        .controls .btn-red[data-action="exit-fullscreen"] {
+            position: absolute;
+            right: 0;
+        }
 
         /* Small text button (copy, clear) */
         .text-btn {
-            font-size: 9px;
-            color: var(--text-faint);
-            cursor: pointer;
-            margin-left: 8px;
-            opacity: 0.6;
-        }
-        .text-btn:hover { opacity: 1; color: var(--text-muted); }
-        .text-btn.active { color: var(--accent); opacity: 1; }
-
-        /* Pill button (mode tags, filters) */
-        .pill {
             font-size: 10px;
             font-weight: 600;
-            padding: 3px 8px;
-            border-radius: 12px;
-            cursor: pointer;
             color: var(--text-muted);
-            background: rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            margin-left: 8px;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
-        .pill:hover { background: rgba(0, 0, 0, 0.1); color: var(--text); }
-        .pill.active { background: var(--accent); color: white; }
+        .text-btn:hover { opacity: 1; color: var(--text); }
+        .text-btn.active { color: var(--accent); opacity: 1; }
 
-        /* Traffic light buttons */
+        /* Frutiger Aero pill buttons */
+        .pill {
+            position: relative;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 50px;
+            cursor: pointer;
+            background: var(--gradient-button);
+            color: var(--text-muted);
+            box-shadow: var(--shadow-drop-md), var(--shadow-inset-highlight), var(--shadow-inset-depth);
+            border: 1px solid var(--border-btn);
+            transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, background 0.15s ease-out;
+            transform: translateY(0);
+        }
+        /* Shine highlight - inset by half the button height where curve begins */
+        .pill::after {
+            content: "";
+            position: absolute;
+            top: 1px;
+            left: 9px;
+            right: 9px;
+            height: 50%;
+            background: var(--gradient-shine);
+            border-radius: 50px;
+            pointer-events: none;
+        }
+        .pill:hover {
+            transform: translateY(-1px);
+            /* Added: 0 1px hard shadow creates "hole" illusion beneath lifted button */
+            box-shadow: 
+                var(--shadow-drop-lg), 
+                var(--shadow-inset-highlight-bright), 
+                var(--shadow-inset-depth),
+                0 1px 0 var(--border-btn);
+            background: var(--gradient-button-hover);
+        }
+        .pill:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow-drop-sm), var(--shadow-inset-pressed);
+            background: var(--gradient-button-pressed);
+        }
+        .pill:active::after {
+            opacity: 0.3;
+        }
+        .pill.active {
+            transform: translateY(0);
+            background: var(--gradient-accent);
+            color: var(--text-inverse);
+            /* Positive Y = shadow below text = light from above = pressed/indented look */
+            text-shadow: 0 1px 1px var(--alpha-black-25);
+            border-color: var(--accent-border);
+            box-shadow: 0 1px 0 var(--alpha-white-10), var(--shadow-inset-pressed);
+        }
+        .pill.active::after {
+            top: auto;
+            bottom: 1px;
+            height: 45%;
+            background: var(--gradient-shine-pressed);
+        }
+        .pill.active:hover {
+            background: var(--gradient-accent-hover);
+        }
+
+        /* SHARE button - prominent green CTA */
+        #share-btn {
+            background: var(--gradient-share);
+            color: var(--text-inverse);
+            border-color: var(--share-border);
+            text-shadow: 0 -1px 0 var(--alpha-black-25);
+        }
+        #share-btn::after {
+            /* Wider shine for wider button - use percentage to scale with width */
+            left: 12%;
+            right: 12%;
+            background: linear-gradient(to bottom, var(--alpha-white-50), transparent);
+        }
+        #share-btn:hover {
+            background: var(--gradient-share-hover);
+        }
+        #share-btn:active {
+            background: var(--gradient-share-pressed);
+        }
+        #share-btn.active {
+            background: var(--gradient-accent);
+            border-color: var(--accent-border);
+        }
+
+        /* Frutiger Aero traffic light buttons - no lift, just glow */
         .traffic-btn {
-            width: 12px;
-            height: 12px;
+            position: relative;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            border: 1px solid rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.15s ease-out, filter 0.15s ease-out;
+            /* Shared traffic button shadows */
+            --traffic-shadow: 0 1px 2px var(--alpha-black-25), 0 1px 0 var(--alpha-white-50) inset, 0 -1px 2px var(--alpha-black-10) inset;
+            --traffic-shadow-hover: 0 1px 2px var(--alpha-black-25), 0 1px 0 var(--alpha-white-75) inset, 0 -1px 2px var(--alpha-black-10) inset;
+            --traffic-shadow-active: 0 1px 1px var(--alpha-black-10), var(--shadow-inset-pressed);
+        }
+        .traffic-btn::after {
+            content: "";
+            position: absolute;
+            top: 1px;
+            left: 15%;
+            right: 15%;
+            height: 45%;
+            background: linear-gradient(to bottom, var(--alpha-white-50), transparent);
+            border-radius: 50%;
+            pointer-events: none;
+            transition: opacity 0.15s ease-out;
         }
         .traffic-btn svg { width: 8px; height: 8px; opacity: 0; }
-        .traffic-btn:hover svg { opacity: 0.6; }
-        .traffic-btn path { stroke: #000; stroke-width: 1.5; stroke-linecap: round; }
-        .btn-yellow { background: #ffbd2e; border-color: #d6a12d; }
-        .btn-green { background: #27c93f; border-color: #21a132; }
-        .btn-red { background: #ff5f57; border-color: #e0443e; }
+        .traffic-btn:hover svg { opacity: 0.7; }
+        .traffic-btn path { stroke: var(--alpha-black-50); stroke-width: 1.5; stroke-linecap: round; }
+        .traffic-btn:hover::after { opacity: 0.9; }
+        .traffic-btn:active::after {
+            top: auto;
+            bottom: 1px;
+            background: linear-gradient(to top, var(--alpha-white-50), transparent);
+        }
+        .btn-yellow {
+            background: var(--traffic-amber);
+            border: 1px solid var(--traffic-amber-border);
+            box-shadow: var(--traffic-shadow);
+        }
+        .btn-yellow:hover { 
+            box-shadow: var(--traffic-shadow-hover);
+            filter: brightness(1.1);
+        }
+        .btn-yellow:active {
+            background: var(--traffic-amber-pressed);
+            box-shadow: var(--traffic-shadow-active);
+            filter: brightness(0.95);
+        }
+        .btn-green {
+            background: var(--traffic-green);
+            border: 1px solid var(--traffic-green-border);
+            box-shadow: var(--traffic-shadow);
+        }
+        .btn-green:hover { 
+            box-shadow: var(--traffic-shadow-hover);
+            filter: brightness(1.1);
+        }
+        .btn-green:active {
+            background: var(--traffic-green-pressed);
+            box-shadow: var(--traffic-shadow-active);
+            filter: brightness(0.95);
+        }
+        .btn-red {
+            background: var(--traffic-red);
+            border: 1px solid var(--traffic-red-border);
+            box-shadow: var(--traffic-shadow);
+        }
+        .btn-red:hover { 
+            box-shadow: var(--traffic-shadow-hover);
+            filter: brightness(1.1);
+        }
+        .btn-red:active {
+            background: var(--traffic-red-pressed);
+            box-shadow: var(--traffic-shadow-active);
+            filter: brightness(0.95);
+        }
 
         /* Drag overlay */
         #drag-overlay {
@@ -142,24 +434,24 @@
         .sidebar-strip, .preview-strip {
             width: 16px;
             height: 100vh;
-            background: rgba(0, 120, 215, 0.6);
+            background: var(--strip-bg);
             cursor: col-resize;
             display: none;
             z-index: 100;
             backdrop-filter: blur(10px);
         }
-        .sidebar-strip { border-right: 1px solid rgba(0, 120, 215, 0.8); }
-        .preview-strip { border-left: 1px solid rgba(0, 120, 215, 0.8); flex-shrink: 0; }
-        .sidebar-strip:hover, .preview-strip:hover { background: rgba(0, 120, 215, 0.8); }
+        .sidebar-strip { border-right: 1px solid var(--strip-border); }
+        .preview-strip { border-left: 1px solid var(--strip-border); flex-shrink: 0; }
+        .sidebar-strip:hover, .preview-strip:hover { background: var(--strip-bg-hover); }
 
         /* Sidebar */
         .sidebar {
             display: flex;
             flex-direction: column;
-            background: rgba(255, 255, 255, 0.35);
+            background: var(--bg-sidebar);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.6);
+            border-right: 1px solid var(--alpha-white-50);
             padding: var(--gap);
             padding-bottom: 0;
             z-index: 10;
@@ -204,69 +496,112 @@
             z-index: 100;
         }
         .fullscreen-mode .label { display: none; }
-        .fs-nav { display: none; align-items: center; gap: 4px; }
-        .fullscreen-mode .fs-nav { display: flex; }
-
-        .mode-switcher { display: flex; gap: 4px; }
-
-        /* Frutiger Aero toggle buttons */
-        .mode-switcher .pill {
-            position: relative;
-            padding: 5px 12px;
-            border-radius: 50px;
-            background: linear-gradient(to bottom, #fff 0%, #e8e8e8 100%);
-            color: var(--text-muted);
-            box-shadow: 
-                0 4px 6px rgba(0, 0, 0, 0.15),
-                0 1px 0 rgba(255, 255, 255, 0.8) inset,
-                0 -2px 4px rgba(0, 0, 0, 0.08) inset;
-            border: 1px solid rgba(0, 0, 0, 0.12);
-            transition: all 0.15s ease-out;
-            transform: translateY(0);
+        /* Floating fullscreen header */
+        .fs-header {
+            display: none;
+            position: absolute;
+            top: var(--gap);
+            left: calc(var(--gap) + 8px);
+            height: var(--header-height);
+            z-index: 200;
+            align-items: center;
+            gap: 8px;
         }
-        .mode-switcher .pill::after {
+        .fullscreen-mode .fs-header {
+            display: flex;
+        }
+        body.layout-mobile .fs-header {
+            top: 0;
+            left: 8px;
+        }
+        .fs-header .fs-nav {
+            display: flex;
+        }
+
+        /* Hide individual panel labels and copy buttons in fullscreen */
+        .fullscreen-mode .editor-box .label,
+        .fullscreen-mode .editor-box .text-btn[data-lang] {
+            display: none;
+        }
+
+        /* Segmented control wrapper */
+        .segmented-control {
+            display: flex;
+            position: relative;
+            background: var(--alpha-black-10);
+            border-radius: 9999px;
+            padding: 3px;
+            gap: 2px;
+            box-shadow:
+                inset 0 2px 4px var(--alpha-black-10),
+                inset 0 1px 2px var(--alpha-black-10),
+                0 1px 0 var(--alpha-white-50);
+        }
+        /* Sliding background */
+        .segmented-control::before {
             content: "";
             position: absolute;
-            top: 1px;
-            left: 15%;
-            right: 15%;
-            height: 45%;
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), transparent);
-            border-radius: 50px;
+            top: 3px;
+            bottom: 3px;
+            left: calc(3px + var(--active-left, 0px));
+            width: var(--active-width, 50px);
+            background: linear-gradient(to bottom, var(--c-white) 0%, var(--c-btn-light) 100%);
+            border-radius: 9999px;
+            box-sizing: border-box;
+            box-shadow:
+                0 1px 1px var(--alpha-black-10),
+                0 1px 0 var(--alpha-white-90) inset;
+            transition: var(--slider-transition, left 0.2s ease, width 0.2s ease);
+            z-index: 0;
+        }
+
+        .segmented-control .pill {
+            position: relative;
+            z-index: 1;
+            padding: 3px 10px;
+            background: transparent;
+            box-shadow: none;
+            border: none;
+            transform: none;
+            color: var(--text-muted);
+            text-shadow: none;
+            transition: color 0.2s ease, text-shadow 0.2s ease;
+        }
+        .segmented-control .pill::after {
+            display: none;
+        }
+        .segmented-control .pill::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: var(--alpha-black-10);
+            border-radius: 9999px;
+            opacity: 0;
+            transition: opacity 0.15s ease;
             pointer-events: none;
         }
-        .mode-switcher .pill:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-                0 6px 10px rgba(0, 0, 0, 0.18),
-                0 1px 0 rgba(255, 255, 255, 0.9) inset,
-                0 -2px 4px rgba(0, 0, 0, 0.06) inset;
-            background: linear-gradient(to bottom, #fff 0%, #f0f0f0 100%);
+        .segmented-control .pill:hover {
+            transform: none;
+            background: transparent;
+            box-shadow: none;
+            color: var(--text);
         }
-        .mode-switcher .pill:active {
-            transform: translateY(2px);
-            box-shadow: 
-                0 1px 2px rgba(0, 0, 0, 0.2),
-                0 1px 0 rgba(255, 255, 255, 0.4) inset,
-                0 -1px 2px rgba(0, 0, 0, 0.15) inset;
+        .segmented-control .pill:not(.active):hover::before {
+            opacity: 1;
         }
-        .mode-switcher .pill.active {
-            transform: translateY(2px);
-            background: linear-gradient(to bottom, #0066cc 0%, #0052a3 100%);
-            color: #fff;
-            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
-            border-color: #004080;
-            box-shadow: 
-                0 1px 2px rgba(0, 0, 0, 0.25),
-                0 1px 0 rgba(255, 255, 255, 0.2) inset,
-                0 -2px 6px rgba(0, 0, 0, 0.3) inset;
+        .segmented-control .pill:active {
+            background: transparent;
         }
-        .mode-switcher .pill.active::after {
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4), transparent);
+        .segmented-control .pill.active {
+            background: transparent;
+            color: var(--text);
+            /* Slider is elevated, so text gets subtle emboss (light from above) */
+            text-shadow: 0 1px 0 var(--alpha-white-50);
+            box-shadow: none;
+            transition: color 0.2s ease, text-shadow 0.2s ease;
         }
-        .mode-switcher .pill.active:hover {
-            transform: translateY(2px);
-            background: linear-gradient(to bottom, #0073e6 0%, #005cb8 100%);
+        .segmented-control .pill.active:hover {
+            background: transparent;
         }
 
         /* Bottom toolbar */
@@ -332,7 +667,7 @@
         .preview:has(.console-panel.fullscreen) iframe { display: none; }
 
         .console-badge {
-            background: rgba(0, 0, 0, 0.1);
+            background: var(--alpha-black-10);
             color: var(--text-muted);
             font-family: var(--font-ui);
             font-size: 9px;
@@ -344,9 +679,9 @@
             margin-left: 6px;
         }
         .console-badge:empty { display: none; }
-        .console-badge.has-errors { background: #e74c3c; color: #fff; }
+        .console-badge.has-errors { background: var(--console-error); color: var(--text-inverse); }
 
-        .console-filters { display: flex; gap: 4px; margin-left: 8px; margin-right: 8px; }
+        .console-filters { margin-left: 8px; margin-right: 8px; }
 
         .console-body {
             flex: 1;
@@ -359,29 +694,34 @@
 
         .console-entry {
             padding: 4px 12px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid var(--alpha-black-05);
             display: flex;
             align-items: flex-start;
             gap: 8px;
         }
-        .console-entry:hover { background: rgba(0, 0, 0, 0.02); }
+        .console-entry:hover { background: var(--alpha-black-05); }
 
         .console-time { color: var(--text-faint); font-size: 10px; flex-shrink: 0; padding-top: 2px; }
-        .console-type { font-family: var(--font-ui); font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 10px; flex-shrink: 0; cursor: pointer; }
-        .console-type.log { background: rgba(0, 0, 0, 0.08); color: var(--text-muted); }
-        .console-type.info { background: #3498db; color: #fff; }
-        .console-type.warn { background: #f39c12; color: #fff; }
-        .console-type.error { background: #e74c3c; color: #fff; }
-        .console-type.copied { background: var(--accent); color: #fff; }
+        .console-type { font-family: var(--font-ui); font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 50px; flex-shrink: 0; cursor: pointer; }
+        .console-type.log { background: var(--alpha-black-10); color: var(--text-muted); }
+        .console-type.info { background: var(--console-info); color: var(--text-inverse); }
+        .console-type.warn { background: var(--console-warn); color: var(--text-inverse); }
+        .console-type.error { background: var(--console-error); color: var(--text-inverse); }
+        .console-type.copied { 
+            background: var(--gradient-accent); 
+            color: var(--text-inverse); 
+            text-shadow: 0 1px 1px var(--alpha-black-25);
+            box-shadow: 0 1px 0 var(--alpha-white-10), var(--shadow-inset-pressed);
+        }
 
         .console-message { color: var(--text); word-break: break-word; flex: 1; white-space: pre-wrap; }
-        .console-entry.warn .console-message { color: #b7791f; }
-        .console-entry.error .console-message { color: #c0392b; }
+        .console-entry.warn .console-message { color: var(--console-warn-text); }
+        .console-entry.error .console-message { color: var(--console-error-text); }
 
         .console-line { color: var(--accent); cursor: pointer; flex-shrink: 0; font-size: 11px; }
         .console-line:hover { text-decoration: underline; }
 
-        .console-count { background: var(--accent); color: #fff; font-family: var(--font-ui); font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 10px; margin-left: 6px; flex-shrink: 0; }
+        .console-count { background: var(--accent); color: var(--text-inverse); font-family: var(--font-ui); font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 10px; margin-left: 6px; flex-shrink: 0; }
 
         .console-empty { color: var(--text-faint); text-align: center; padding: 20px; font-style: italic; }
 
@@ -396,18 +736,18 @@
             line-height: 1.4;
         }
         .CodeMirror-gutters {
-            background: rgba(245, 245, 245, 0.95) !important;
+            background: var(--bg-gutter) !important;
             border-right: 1px solid var(--border-dark) !important;
         }
 
         /* Code hints */
         .CodeMirror-hints {
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--alpha-white-90);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid var(--border-light);
             border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 12px var(--alpha-black-10);
             font-family: var(--font-mono);
             font-size: 12px;
             padding: 4px 0;
@@ -417,17 +757,50 @@
         }
         .CodeMirror-hint { padding: 4px 10px; color: var(--text); cursor: pointer; }
         .CodeMirror-hint-active {
-            background: linear-gradient(to bottom, #7bbaf7 0%, #4096ee 100%);
-            color: white;
+            background: linear-gradient(to bottom, var(--hint-bg-from) 0%, var(--hint-bg-to) 100%);
+            color: var(--text-inverse);
             border-radius: 3px;
             margin: 0 4px;
         }
 
         /* Error highlighting (runtime errors from console) */
-        .cm-error-line { background: rgba(231, 76, 60, 0.15) !important; }
+        .cm-error-line { background: var(--alpha-red-10) !important; }
 
         /* Matched tag highlighting */
-        .CodeMirror-matchingtag { background: rgba(0, 120, 215, 0.15); }
+        .CodeMirror-matchingtag { background: var(--alpha-blue-10); }
+        
+        /* ==============================================
+           SYNTAX HIGHLIGHTING (unified across languages)
+           Using palette colors for consistency
+           ============================================== */
+        
+        /* Keywords, tags, selectors (structural) */
+        .cm-keyword { color: var(--c-blue-dark); font-weight: 600; }
+        .cm-tag { color: var(--c-blue-dark); }
+        .cm-qualifier { color: var(--c-blue-dark); }  /* CSS class selectors */
+        .cm-builtin { color: var(--c-blue-dark); }
+        
+        /* Properties, attributes (descriptive) */
+        .cm-attribute { color: var(--c-amber-dark); }
+        .cm-property { color: var(--c-amber-dark); }
+        .cm-variable { color: var(--c-dark); }
+        .cm-variable-2 { color: var(--c-navy); }
+        .cm-variable-3 { color: var(--c-blue); }
+        .cm-def { color: var(--c-navy); }
+        
+        /* Values, strings, numbers (data) */
+        .cm-string { color: var(--c-green-dark); }
+        .cm-string-2 { color: var(--c-green-dark); }
+        .cm-number { color: var(--c-amber); }
+        .cm-atom { color: var(--c-amber); }
+        
+        /* Comments, meta (secondary) */
+        .cm-comment { color: var(--c-gray); font-style: italic; }
+        .cm-meta { color: var(--c-gray); }
+        
+        /* Punctuation */
+        .cm-bracket { color: var(--c-gray-warm); }
+        .cm-operator { color: var(--c-gray-warm); }
 
         /* ==============================================
            CONDITIONAL VISIBILITY SYSTEM
@@ -436,11 +809,11 @@
            ============================================== */
         /* Default: hide mobile elements, show desktop elements */
         [data-show="mobile"] { display: none !important; }
-        
+
         /* Mobile layout: show mobile elements, hide desktop elements */
         body.layout-mobile [data-show="mobile"] { display: flex !important; }
         body.layout-mobile [data-show="desktop"] { display: none !important; }
-        
+
         /* Desktop: text-btn should be inline, not flex */
         .text-btn[data-show="desktop"] { display: inline !important; }
 
@@ -448,7 +821,7 @@
            MOBILE LAYOUT STYLES
            Applied when body has .layout-mobile class
            ============================================== */
-        
+
         /* Both sidebar and preview are full-screen in mobile */
         body.layout-mobile .sidebar,
         body.layout-mobile .preview {
@@ -463,26 +836,26 @@
         /* Mobile view states */
         body.layout-mobile.view-code .sidebar { display: flex; z-index: 10; }
         body.layout-mobile.view-code .preview { display: none; }
-        
+
         body.layout-mobile.view-preview .sidebar { display: none; }
         body.layout-mobile.view-preview .preview { display: flex; z-index: 10; }
         body.layout-mobile.view-preview .console-panel { display: none; }
-        
+
         body.layout-mobile.view-console .sidebar { display: none; }
         body.layout-mobile.view-console .preview { display: flex; z-index: 10; }
         body.layout-mobile.view-console .preview iframe { display: none; }
         /* Preview header bar hidden in console view (it uses data-show="mobile" so it's shown,
            but we want it hidden when viewing console) */
         body.layout-mobile.view-console .preview > .header-bar[data-show="mobile"] { display: none !important; }
-        body.layout-mobile.view-console .console-panel { 
-            flex: 1; 
+        body.layout-mobile.view-console .console-panel {
+            flex: 1;
             max-height: none;
             border-radius: 0;
             border: none;
         }
 
         /* Mobile: full bleed layout with no gaps or rounded corners */
-        body.layout-mobile .sidebar { 
+        body.layout-mobile .sidebar {
             padding: 0;
             background: transparent;
             backdrop-filter: none;
@@ -504,7 +877,7 @@
         body.layout-mobile .sidebar .bottom-toolbar {
             border-radius: 0;
         }
-        
+
         /* Hide red exit-fullscreen button in mobile */
         body.layout-mobile .traffic-btn.btn-red { display: none !important; }
 
@@ -517,6 +890,12 @@
         body.layout-mobile .console-panel {
             max-height: 50vh;
         }
+
+        .console-toolbar {
+            border-top: 1px solid var(--border-dark);
+            justify-content: space-between;
+        }
+
 
         /* Larger touch targets for mobile */
         body.layout-mobile {
@@ -543,29 +922,32 @@
     <div id="sidebar" class="sidebar">
         <div class="sidebar-resizer" id="sidebar-resizer"></div>
 
+        <!-- Floating header for fullscreen mode -->
+        <div class="fs-header" id="fs-header">
+            <div class="fs-nav segmented-control" id="lang-switcher">
+                <span class="pill active" data-panel="html">HTML</span>
+                <span class="pill" data-panel="css">CSS</span>
+                <span class="pill" data-panel="js">JS</span>
+            </div>
+            <span class="text-btn" id="fs-copy" data-lang="html">copy</span>
+        </div>
+
         <div class="editor-box panel" id="box-html">
             <div class="header-bar" id="header-html">
                 <div style="display:flex;align-items:center">
                     <span class="label" data-show="desktop">HTML</span>
-                    <div class="fs-nav">
-                        <span class="pill active" data-panel="html">HTML</span>
-                        <span class="pill" data-panel="css">CSS</span>
-                        <span class="pill" data-panel="js">JS</span>
-                    </div>
                     <span class="text-btn" data-lang="html">copy</span>
                 </div>
                 <div class="controls">
-                    <div data-show="mobile" style="display:flex;gap:4px">
-                        <span class="pill" data-mobile-view="console">CONSOLE</span>
-                        <span class="pill" data-mobile-view="preview">PREVIEW</span>
-                    </div>
+                    <span class="pill" data-show="mobile" data-mobile-view="console">CONSOLE</span>
+                    <span class="pill" data-show="mobile" data-mobile-view="preview">PREVIEW</span>
                     <div class="traffic-btn btn-yellow" data-show="desktop" data-action="minimize" data-panel="html">
                         <svg viewBox="0 0 10 10"><path d="M2,5 L8,5"/></svg>
                     </div>
                     <div class="traffic-btn btn-green" data-show="desktop" data-action="fullscreen" data-panel="html">
                         <svg viewBox="0 0 10 10"><path d="M5,2 L5,8 M2,5 L8,5"/></svg>
                     </div>
-                    <div class="traffic-btn btn-red" data-action="exit-fullscreen" data-panel="html" style="display:none">
+                    <div class="traffic-btn btn-red" data-action="exit-fullscreen" data-panel="html" style="visibility:hidden">
                         <svg viewBox="0 0 10 10"><path d="M2,2 L8,8 M8,2 L2,8"/></svg>
                     </div>
                 </div>
@@ -577,25 +959,18 @@
             <div class="header-bar" id="header-css">
                 <div style="display:flex;align-items:center">
                     <span class="label" data-show="desktop">CSS</span>
-                    <div class="fs-nav">
-                        <span class="pill" data-panel="html">HTML</span>
-                        <span class="pill active" data-panel="css">CSS</span>
-                        <span class="pill" data-panel="js">JS</span>
-                    </div>
                     <span class="text-btn" data-lang="css">copy</span>
                 </div>
                 <div class="controls">
-                    <div data-show="mobile" style="display:flex;gap:4px">
-                        <span class="pill" data-mobile-view="console">CONSOLE</span>
-                        <span class="pill" data-mobile-view="preview">PREVIEW</span>
-                    </div>
+                    <span class="pill" data-show="mobile" data-mobile-view="console">CONSOLE</span>
+                    <span class="pill" data-show="mobile" data-mobile-view="preview">PREVIEW</span>
                     <div class="traffic-btn btn-yellow" data-show="desktop" data-action="minimize" data-panel="css">
                         <svg viewBox="0 0 10 10"><path d="M2,5 L8,5"/></svg>
                     </div>
                     <div class="traffic-btn btn-green" data-show="desktop" data-action="fullscreen" data-panel="css">
                         <svg viewBox="0 0 10 10"><path d="M5,2 L5,8 M2,5 L8,5"/></svg>
                     </div>
-                    <div class="traffic-btn btn-red" data-action="exit-fullscreen" data-panel="css" style="display:none">
+                    <div class="traffic-btn btn-red" data-action="exit-fullscreen" data-panel="css" style="visibility:hidden">
                         <svg viewBox="0 0 10 10"><path d="M2,2 L8,8 M8,2 L2,8"/></svg>
                     </div>
                 </div>
@@ -607,25 +982,18 @@
             <div class="header-bar" id="header-js">
                 <div style="display:flex;align-items:center">
                     <span class="label" data-show="desktop">JS</span>
-                    <div class="fs-nav">
-                        <span class="pill" data-panel="html">HTML</span>
-                        <span class="pill" data-panel="css">CSS</span>
-                        <span class="pill active" data-panel="js">JS</span>
-                    </div>
                     <span class="text-btn" data-lang="js">copy</span>
                 </div>
                 <div class="controls">
-                    <div data-show="mobile" style="display:flex;gap:4px">
-                        <span class="pill" data-mobile-view="console">CONSOLE</span>
-                        <span class="pill" data-mobile-view="preview">PREVIEW</span>
-                    </div>
+                    <span class="pill" data-show="mobile" data-mobile-view="console">CONSOLE</span>
+                    <span class="pill" data-show="mobile" data-mobile-view="preview">PREVIEW</span>
                     <div class="traffic-btn btn-yellow" data-show="desktop" data-action="minimize" data-panel="js">
                         <svg viewBox="0 0 10 10"><path d="M2,5 L8,5"/></svg>
                     </div>
                     <div class="traffic-btn btn-green" data-show="desktop" data-action="fullscreen" data-panel="js">
                         <svg viewBox="0 0 10 10"><path d="M5,2 L5,8 M2,5 L8,5"/></svg>
                     </div>
-                    <div class="traffic-btn btn-red" data-action="exit-fullscreen" data-panel="js" style="display:none">
+                    <div class="traffic-btn btn-red" data-action="exit-fullscreen" data-panel="js" style="visibility:hidden">
                         <svg viewBox="0 0 10 10"><path d="M2,2 L8,8 M8,2 L2,8"/></svg>
                     </div>
                 </div>
@@ -634,7 +1002,7 @@
         </div>
 
         <div class="bottom-toolbar header-bar">
-            <div class="mode-switcher">
+            <div class="mode-switcher segmented-control">
                 <span class="pill active" data-keymap="vim">VIM</span>
                 <span class="pill" data-keymap="default">NORMAL</span>
             </div>
@@ -659,31 +1027,39 @@
         <div id="console-panel" class="console-panel panel">
             <div class="header-bar" id="console-header">
                 <div style="display:flex;align-items:center">
-                    <span class="label">CONSOLE</span>
+                    <span class="label" id="console-label">CONSOLE</span>
                     <span class="console-badge" id="console-badge"></span>
-                    <div class="console-filters">
+                    <div class="console-filters segmented-control" data-show="desktop">
                         <span class="pill active" data-filter="all">ALL</span>
                         <span class="pill" data-filter="log">LOG</span>
                         <span class="pill" data-filter="warn">WARN</span>
                         <span class="pill" data-filter="error">ERR</span>
                     </div>
-                    <span class="text-btn" id="console-copy" data-show="desktop">copy</span>
-                    <span class="text-btn" id="console-clear" data-show="desktop">clear</span>
+                    <span class="text-btn" id="console-copy">copy</span>
+                    <span class="text-btn" id="console-clear">clear</span>
                 </div>
-                <div class="controls">
-                    <div data-show="mobile" style="display:flex;gap:4px">
-                        <span class="pill" data-mobile-view="preview">PREVIEW</span>
-                        <span class="pill" data-mobile-view="code">CODE</span>
-                    </div>
-                    <div class="traffic-btn btn-yellow" data-show="desktop" data-action="console-collapse">
+                <div class="controls" data-show="desktop">
+                    <div class="traffic-btn btn-yellow" data-action="console-collapse">
                         <svg viewBox="0 0 10 10"><path d="M2,5 L8,5"/></svg>
                     </div>
-                    <div class="traffic-btn btn-green" data-show="desktop" data-action="console-fullscreen">
+                    <div class="traffic-btn btn-green" data-action="console-fullscreen">
                         <svg viewBox="0 0 10 10"><path d="M5,2 L5,8 M2,5 L8,5"/></svg>
                     </div>
                 </div>
+                <div class="controls" data-show="mobile">
+                    <span class="pill" data-mobile-view="preview">PREVIEW</span>
+                    <span class="pill" data-mobile-view="code">CODE</span>
+                </div>
             </div>
             <div class="console-body" id="console-body"></div>
+            <div class="console-toolbar header-bar" data-show="mobile">
+                <div class="console-filters segmented-control">
+                    <span class="pill active" data-filter="all">CONSOLE</span>
+                    <span class="pill" data-filter="log">LOG</span>
+                    <span class="pill" data-filter="warn">WARN</span>
+                    <span class="pill" data-filter="error">ERR</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -706,46 +1082,125 @@
     <script>
     // Layout constants
     const PANELS = ['html', 'css', 'js'];
-    const HEADER_H = 28;
-    const MIN_H = 50;           // min editor panel height when open
-    const MIN_CONSOLE_H = 60;   // min console height (header + 1.5 lines)
+    const HEADER_H = 32;
+    const MIN_H = 56;           // min editor panel height when open
+    const MIN_CONSOLE_H = 70;   // min console height (header + ~2 lines)
     const COLLAPSED_H = HEADER_H;
     const GAP = 8;
     const TOOLBAR_H = HEADER_H;
     const MIN_SIDEBAR_W = 350;
-    const MIN_PREVIEW_W = 350;
+    const MIN_PREVIEW_W = 425;
     const DEFAULT_SIDEBAR_W = 500;
     const STRIP_W = 16;
 
     const DEFAULTS = {
-        html: `<button>Download Aerocode</button>`,
-        css: `body {
-  height: 100vh;
+        html: `<div class="card">
+  <img src="https://slightknack.dev/content/path.jpg">
+  <div class="content">
+    <div>
+      <h1>AeroCode</h1>
+      <p><a href="https://isaac.sh/about" target="_blank">Isaac Clayton</a> · <a href="https://github.com/slightknack" target="_blank">GitHub</a></p>
+    </div>
+    <button>Download</button>
+  </div>
+</div>`,
+        css: `/*
+  Safe web fonts:
+  - system-ui, -apple-system (system default)
+  - Georgia, Times New Roman (serif)
+  - Arial, Helvetica, Verdana (sans-serif)
+  - Courier New, monospace (mono)
+*/
+
+* { box-sizing: border-box; }
+
+body {
+  min-height: 100vh;
   margin: 0;
+  padding: 16px;
   display: grid;
   place-items: center;
-  background: #fafafa;
-  background-image:
-    linear-gradient(#eee 1px, transparent 1px),
-    linear-gradient(90deg, #eee 1px, transparent 1px);
-  background-size: 20px 20px;
+  background: linear-gradient(135deg, #a8edea, #fed6e3);
 }
 
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg, #0001 0 1px, transparent 1px 24px
+  ), repeating-linear-gradient(
+    90deg, #0001 0 1px, transparent 1px 24px
+  );
+  animation: scroll 4s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes scroll {
+  to { background-position: 24px 24px; }
+}
+
+.card {
+  max-width: 500px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #fffb;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 40px #0002, inset 0 1px 0 #fff;
+}
+
+.card img { width: 100%; display: block; }
+
+.content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  gap: 16px;
+}
+
+h1 {
+  margin: 0;
+  font: 700 26px system-ui;
+  color: #172038;
+}
+
+p {
+  margin: 2px 0 0;
+  font: 14px system-ui;
+  color: #577277;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover { text-decoration: underline; }
+
 button {
-  font: 600 14px system-ui;
+  padding: 12px 24px;
+  font: 600 15px system-ui;
   color: #fff;
-  padding: 8px 30px;
-  border: 1px solid #2e6da4;
+  border: none;
   border-radius: 100px;
-  background: linear-gradient(#7bbaf7, #4096ee);
-  box-shadow: 0 2px 5px #0002;
+  background: linear-gradient(to bottom, #29adff, #4f8fba);
+  border-bottom: 3px solid #3c5e8b;
+  box-shadow: 0 4px 12px #29adff55, inset 0 1px 0 #fff6;
   cursor: pointer;
+  transition: 0.15s;
 }
 
 button:hover {
-  filter: brightness(1.05);
+  border-bottom-width: 5px;
+  margin-top: -2px;
+}
+
+button:active {
+  border-bottom-width: 1px;
+  margin-top: 2px;
 }`,
-        js: `console.log("Welcome to Aerocode!");
+        js: `console.log("Welcome to AeroCode!");
 
 document.querySelector('button').onclick = () => {
   const a = document.createElement('a');
@@ -776,13 +1231,13 @@ document.querySelector('button').onclick = () => {
         if (state.layout === 'desktop') return false;
         return mobileQuery.matches;
     }
-    
+
     // Update body classes based on current layout state
     function updateLayoutClasses() {
         const mobile = isMobile();
         document.body.classList.toggle('layout-mobile', mobile);
         document.body.classList.toggle('layout-desktop', !mobile);
-        
+
         // View classes only apply in mobile layout
         document.body.classList.toggle('view-code', mobile && state.mobileView === 'code');
         document.body.classList.toggle('view-preview', mobile && state.mobileView === 'preview');
@@ -876,6 +1331,18 @@ document.querySelector('button').onclick = () => {
         });
     }
 
+    // Segmented control: update slider position
+    function updateSegmentedSlider(container) {
+        const active = container.querySelector('.pill.active');
+        if (!active) return;
+        container.style.setProperty('--active-left', `${active.offsetLeft - 3}px`);
+        container.style.setProperty('--active-width', `${active.offsetWidth}px`);
+    }
+
+    function updateAllSegmentedSliders() {
+        document.querySelectorAll('.segmented-control').forEach(updateSegmentedSlider);
+    }
+
     // Render: derive DOM from state
     function render() {
         const maxW = window.innerWidth;
@@ -883,7 +1350,7 @@ document.querySelector('button').onclick = () => {
 
         // Update layout classes on body
         updateLayoutClasses();
-        
+
         // Force fullscreen/tabbed mode on mobile - default to HTML if nothing selected
         if (mobile && !state.fullscreen) {
             state.fullscreen = 'html';
@@ -919,15 +1386,25 @@ document.querySelector('button').onclick = () => {
                 const box = dom.boxes[p];
                 const isActive = p === state.fullscreen;
                 box.classList.toggle('fs-active', isActive);
-                box.querySelector('.btn-red').style.display = isActive ? 'flex' : 'none';
-                box.querySelector('.btn-green').style.display = isActive ? 'none' : 'flex';
-                box.querySelector('.btn-yellow').style.display = isActive ? 'none' : 'flex';
+                box.querySelector('.btn-red').style.visibility = isActive ? 'visible' : 'hidden';
+                box.querySelector('.btn-green').style.visibility = isActive ? 'hidden' : 'visible';
+                box.querySelector('.btn-yellow').style.visibility = isActive ? 'hidden' : 'visible';
+            });
 
-                // Update fs-nav pill active states
-                box.querySelectorAll('.fs-nav .pill').forEach(pill => {
+            // Update lang-switcher pill active states
+            const langSwitcher = document.getElementById('lang-switcher');
+            if (langSwitcher) {
+                langSwitcher.querySelectorAll('.pill').forEach(pill => {
                     pill.classList.toggle('active', pill.dataset.panel === state.fullscreen);
                 });
-            });
+                updateSegmentedSlider(langSwitcher);
+            }
+
+            // Update fs-copy button data attribute
+            const fsCopy = document.getElementById('fs-copy');
+            if (fsCopy) {
+                fsCopy.dataset.lang = state.fullscreen;
+            }
         } else {
             dom.sidebar.classList.remove('fullscreen-mode');
 
@@ -941,9 +1418,9 @@ document.querySelector('button').onclick = () => {
                 box.style.height = `${h}px`;
                 box.style.bottom = 'auto';
 
-                box.querySelector('.btn-red').style.display = 'none';
-                box.querySelector('.btn-green').style.display = 'flex';
-                box.querySelector('.btn-yellow').style.display = 'flex';
+                box.querySelector('.btn-red').style.visibility = 'hidden';
+                box.querySelector('.btn-green').style.visibility = 'visible';
+                box.querySelector('.btn-yellow').style.visibility = 'visible';
 
                 document.getElementById(`header-${p}`).style.cursor = p === 'html' ? 'pointer' : 'row-resize';
 
@@ -1215,12 +1692,25 @@ document.querySelector('button').onclick = () => {
             });
         });
 
+        document.querySelectorAll('.segmented-control').forEach(container => {
+            // Initialize slider position
+            updateSegmentedSlider(container);
+
+            // Update on click
+            container.querySelectorAll('.pill').forEach(pill => {
+                pill.addEventListener('click', () => {
+                    container.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+                    pill.classList.add('active');
+                    updateSegmentedSlider(container);
+                });
+            });
+        });
+
+        // Mode switcher specific logic (keymap change)
         document.querySelectorAll('.mode-switcher .pill').forEach(tag => {
             tag.addEventListener('click', () => {
                 const keymap = tag.dataset.keymap;
                 Object.values(editors).forEach(cm => cm.setOption('keyMap', keymap));
-                document.querySelectorAll('.mode-switcher .pill').forEach(t => t.classList.remove('active'));
-                tag.classList.add('active');
             });
         });
 
@@ -1237,6 +1727,7 @@ document.querySelector('button').onclick = () => {
             render();
             requestAnimationFrame(() => {
                 Object.values(editors).forEach(cm => cm.refresh());
+                updateAllSegmentedSliders();
             });
         });
 
@@ -1326,6 +1817,7 @@ document.querySelector('button').onclick = () => {
 
         // Console header drag to resize (with snap-to-close and snap-to-fullscreen)
         document.getElementById('console-header').addEventListener('mousedown', (e) => {
+            if (isMobile()) return; // No drag/collapse on mobile
             if (e.target.closest('.controls') || e.target.closest('.console-filters') || e.target.closest('.text-btn')) return;
             e.preventDefault();
             const startY = e.clientY;
@@ -1368,8 +1860,30 @@ document.querySelector('button').onclick = () => {
         });
 
         window.addEventListener('resize', () => {
+            const maxW = window.innerWidth;
+
+            // Enforce sidebar/preview width constraints on window resize
+            if (state.collapsed) {
+                // Sidebar collapsed - nothing to constrain
+            } else if (state.previewCollapsed) {
+                // Preview collapsed - sidebar takes full width minus strip
+                state.sidebarWidth = maxW - STRIP_W;
+            } else {
+                // Both visible - enforce min widths
+                // If window too small for both, prioritize preview
+                const maxSidebarW = maxW - MIN_PREVIEW_W;
+                if (maxSidebarW < MIN_SIDEBAR_W) {
+                    // Window too small - collapse sidebar
+                    state.prevSidebarWidth = state.sidebarWidth;
+                    state.collapsed = true;
+                } else {
+                    state.sidebarWidth = Math.max(MIN_SIDEBAR_W, Math.min(state.sidebarWidth, maxSidebarW));
+                }
+            }
+
             enforceConstraints();
             render();
+            updateAllSegmentedSliders();
         });
 
         // Mobile view navigation pills
@@ -1377,19 +1891,32 @@ document.querySelector('button').onclick = () => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 state.mobileView = btn.dataset.mobileView;
+
+                // Disable transitions on segmented controls before render
+                document.querySelectorAll('.segmented-control').forEach(c => {
+                    c.style.setProperty('--slider-transition', 'none');
+                });
+
                 render();
-                // Refresh editors when switching to code view
-                if (state.mobileView === 'code') {
-                    requestAnimationFrame(() => {
-                        Object.values(editors).forEach(cm => cm.refresh());
+
+                // Update sliders immediately without animation, then re-enable transitions
+                updateAllSegmentedSliders();
+                requestAnimationFrame(() => {
+                    document.querySelectorAll('.segmented-control').forEach(c => {
+                        c.style.removeProperty('--slider-transition');
                     });
-                }
+                    // Refresh editors when switching to code view
+                    if (state.mobileView === 'code') {
+                        Object.values(editors).forEach(cm => cm.refresh());
+                    }
+                });
             });
         });
 
         // Listen for media query changes to handle orientation/resize
         mobileQuery.addEventListener('change', () => {
             render();
+            requestAnimationFrame(updateAllSegmentedSliders);
         });
     }
 
@@ -1758,8 +2285,25 @@ document.querySelector('button').onclick = () => {
 
         // Update filter buttons
         document.querySelectorAll('.console-filters .pill').forEach(f => {
-            f.classList.toggle('active', f.dataset.filter === consoleState.filter);
+          f.classList.toggle('active', f.dataset.filter === consoleState.filter);
         });
+
+        // Update segmented control sliders for console filters
+        document.querySelectorAll('.console-filters.segmented-control').forEach(updateSegmentedSlider);
+
+        // Swap green/red button based on fullscreen state
+        const consoleGreen = panel.querySelector('.traffic-btn[data-action="console-fullscreen"]');
+        if (consoleGreen) {
+            if (consoleState.fullscreen) {
+                consoleGreen.classList.remove('btn-green');
+                consoleGreen.classList.add('btn-red');
+                consoleGreen.innerHTML = '<svg viewBox="0 0 10 10"><path d="M2,2 L8,8 M8,2 L2,8"/></svg>';
+            } else {
+                consoleGreen.classList.remove('btn-red');
+                consoleGreen.classList.add('btn-green');
+                consoleGreen.innerHTML = '<svg viewBox="0 0 10 10"><path d="M5,2 L5,8 M2,5 L8,5"/></svg>';
+            }
+        }
 
         // Filter entries with original indices
         const filtered = consoleState.entries
@@ -1891,7 +2435,7 @@ document.querySelector('button').onclick = () => {
 
             const editorConfig = {
                 mode: modes[lang],
-                theme: 'neat',
+                
                 lineNumbers: true,
                 keyMap: 'vim',
                 extraKeys: {
