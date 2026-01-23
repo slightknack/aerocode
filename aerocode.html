@@ -973,14 +973,11 @@ body::before {
             </div>
             <div class="editor-content"><textarea id="code-js">console.log("Welcome to AeroCode!");
 
-document.querySelector('button').onclick = async () => {
-  const res = await fetch('https://slightknack.dev/aerocode.html');
-  const blob = await res.blob();
+document.querySelector('button').onclick = () => {
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  a.href = 'https://slightknack.dev/aerocode.html';
   a.download = 'aerocode.html';
   a.click();
-  URL.revokeObjectURL(a.href);
 };</textarea></div>
         </div>
 
@@ -1011,7 +1008,7 @@ document.querySelector('button').onclick = async () => {
             </div>
         </div>
         <div id="iframe-container" class="iframe-container">
-            <iframe id="preview-frame" sandbox="allow-scripts allow-modals allow-same-origin"></iframe>
+            <iframe id="preview-frame" sandbox="allow-scripts allow-modals allow-same-origin allow-downloads"></iframe>
         </div>
         <div id="console-panel" class="console-panel panel">
             <div class="header-bar" id="console-header">
