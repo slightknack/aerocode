@@ -1,50 +1,77 @@
 :root {
-    /* Base palette */
-    --blue: #0360df;
-    --blue-light: #2878e8;
-    --blue-dark: #002351;
-    --navy: #003060;
-    --cyan: #8de3fc;
-    --cyan-light: #a2e0ee;
-    --ocean: #1b93bf;
-    --white-ice: #f4feff;
+    /* Primitives from COLORS.md */
+    --c-white: #ffffff;
+    --c-dark: #172038;
+    --c-navy: #253a5e;
+    --c-blue: #4f8fba;
+    --c-blue-bright: #29adff;
+    --c-blue-dark: #3c5e8b;
+    --c-cyan: #a8edea;
+    --c-cyan-light: #d7f0ef;
+    --c-cyan-dark: #39dcd5;
 
-    /* Shadows */
-    --shadow-blue: rgba(17, 110, 231, 0.6);
-    --shadow-dark: rgba(0, 10, 30, 0.7);
-    --shadow-ocean: rgba(0, 50, 100, 0.4);
+    /* Derived button colors (OKLCH from blue-bright) */
+    --c-btn-blue: #007df7;
+    --c-btn-blue-hover: #2195fe;
+    --c-btn-edge: #012658;
+    --c-btn-active: #11315f;
+    --c-white-ice: #effdfc;
+    --c-glow-cyan: #77e2dc;
+    --c-ocean: #0096af;
+    --c-caustic: #94e5e0;
 
-    /* Button gradients */
-    --grad-shine: radial-gradient(75% 50% at 50% 0%, var(--white-ice), transparent);
-    --grad-cyan: radial-gradient(75% 35% at 50% 80%, var(--cyan), transparent);
-    --grad-caustic: 
+    /* Alpha scale from COLORS.md */
+    --alpha-white-75: rgba(255, 255, 255, 0.75);
+    --alpha-white-50: rgba(255, 255, 255, 0.50);
+    --alpha-white-25: rgba(255, 255, 255, 0.25);
+    --alpha-white-20: rgba(255, 255, 255, 0.20);
+    --alpha-white-10: rgba(255, 255, 255, 0.10);
+    --alpha-black-50: rgba(0, 0, 0, 0.50);
+    --alpha-black-25: rgba(0, 0, 0, 0.25);
+    --alpha-black-10: rgba(0, 0, 0, 0.10);
+
+    /* Derived alphas (from base colors) */
+    --alpha-btn-blue-60: rgba(0, 125, 247, 0.6);
+    --alpha-btn-blue-25: rgba(0, 125, 247, 0.25);
+    --alpha-glow-50: rgba(119, 226, 220, 0.5);
+    --alpha-glow-15: rgba(119, 226, 220, 0.15);
+    --alpha-ocean-20: rgba(0, 150, 175, 0.2);
+    --alpha-caustic-50: rgba(148, 229, 224, 0.5);
+    --alpha-dark-70: rgba(23, 32, 56, 0.7);
+    --alpha-navy-40: rgba(37, 58, 94, 0.4);
+    --alpha-navy-25: rgba(37, 58, 94, 0.25);
+
+    /* Gradients */
+    --grad-shine: radial-gradient(75% 50% at 50% 0%, var(--c-white-ice), transparent);
+    --grad-glow: radial-gradient(75% 35% at 50% 80%, var(--c-glow-cyan), transparent);
+    --grad-caustic:
         linear-gradient(to bottom, rgba(0, 0, 20, 0.5) 0%, transparent 50%),
-        radial-gradient(70% 70% at 50% 110%, var(--ocean) 10%, transparent 60%),
-        radial-gradient(40% 30% at 50% 95%, var(--cyan-light) 0%, transparent 50%);
+        radial-gradient(70% 70% at 50% 110%, var(--c-ocean) 10%, transparent 60%),
+        radial-gradient(40% 30% at 50% 95%, var(--c-caustic) 0%, transparent 50%);
 }
 
 body {
     font: 400 1rem/1.5 -apple-system, system-ui, sans-serif;
-    color: #172038;
+    color: var(--c-dark);
 }
 
 button {
     position: relative;
     font-weight: 600;
     font-size: 0.85rem;
-    color: white;
+    color: var(--c-white);
     cursor: pointer;
     padding: 8px 16px;
     border-radius: 50px;
-    border: 1px solid var(--blue);
-    border-bottom: 6px solid var(--blue-dark);
-    background-color: var(--blue);
-    background-image: var(--grad-shine), var(--grad-cyan);
+    border: 1px solid var(--c-btn-blue);
+    border-bottom: 6px solid var(--c-btn-edge);
+    background-color: var(--c-btn-blue);
+    background-image: var(--grad-shine), var(--grad-glow);
     box-shadow:
-        inset 0 -2px 4px 1px var(--shadow-blue),
-        inset 0 -4px 4px 1px var(--cyan),
-        inset 0 0 2px 1px rgba(255, 255, 255, 0.2);
-    text-shadow: 0 1px 1px #116ee7;
+        inset 0 -2px 4px 1px var(--alpha-btn-blue-60),
+        inset 0 -4px 4px 1px var(--c-glow-cyan),
+        inset 0 0 2px 1px var(--alpha-white-20);
+    text-shadow: 0 1px 1px var(--c-blue-dark);
     transition:
         border-color 0.12s ease-out,
         border-bottom-width 0.08s ease-out,
@@ -64,7 +91,7 @@ button::before {
     left: 12px;
     right: 12px;
     height: 40%;
-    background: linear-gradient(to bottom, var(--white-ice), transparent);
+    background: linear-gradient(to bottom, var(--c-white-ice), transparent);
     opacity: 0.75;
     pointer-events: none;
     transition: opacity 0.15s ease-out;
@@ -72,20 +99,20 @@ button::before {
 button::after {
     inset: 0;
     z-index: -1;
-    background: rgba(3, 96, 223, 0.25);
+    background: var(--alpha-btn-blue-25);
     filter: blur(8px);
     transform: translateY(10px);
     transition: transform 0.2s ease-out, filter 0.2s ease-out, background 0.25s ease-out;
 }
 
 button:hover {
-    background-color: var(--blue-light);
+    background-color: var(--c-btn-blue-hover);
     box-shadow:
-        inset 0 -2px 6px 2px var(--shadow-blue),
-        inset 0 -6px 8px 2px var(--cyan),
-        inset 0 0 4px 1px rgba(255, 255, 255, 0.5),
-        0 0 24px rgba(141, 227, 252, 0.5),
-        0 6px 20px rgba(0, 35, 81, 0.25);
+        inset 0 -2px 6px 2px var(--alpha-btn-blue-60),
+        inset 0 -6px 8px 2px var(--c-glow-cyan),
+        inset 0 0 4px 1px var(--alpha-white-50),
+        0 0 24px var(--alpha-glow-50),
+        0 6px 20px var(--alpha-navy-25);
 }
 button:hover::before { opacity: 1; }
 button:hover::after { transform: translateY(14px); filter: blur(12px); }
@@ -93,14 +120,14 @@ button:hover::after { transform: translateY(14px); filter: blur(12px); }
 button:active {
     border-bottom-width: 2px;
     margin-top: 4px;
-    border-color: var(--navy);
-    background-color: var(--navy);
+    border-color: var(--c-btn-active);
+    background-color: var(--c-btn-active);
     background-image: var(--grad-caustic);
     box-shadow:
-        inset 0 6px 15px var(--shadow-dark),
-        inset 0 -2px 4px rgba(162, 224, 238, 0.5),
-        inset 0 0 10px var(--shadow-ocean),
-        0 0 8px rgba(141, 227, 252, 0.15);
+        inset 0 6px 15px var(--alpha-dark-70),
+        inset 0 -2px 4px var(--alpha-caustic-50),
+        inset 0 0 10px var(--alpha-navy-40),
+        0 0 8px var(--alpha-glow-15);
 }
 button:active::before { opacity: 0.3; }
-button:active::after { transform: translateY(4px); filter: blur(6px); background: rgba(27, 147, 191, 0.2); }
+button:active::after { transform: translateY(4px); filter: blur(6px); background: var(--alpha-ocean-20); }
