@@ -20,6 +20,11 @@
     --c-ocean: #0096af;
     --c-caustic: #94e5e0;
 
+    /* Input field colors */
+    --c-input-bg: #e8e8e8;
+    --c-input-bg-focus: #f0f0f0;
+    --c-placeholder: #8a9a99;
+
     /* Alpha scale from COLORS.md */
     --alpha-white-75: rgba(255, 255, 255, 0.75);
     --alpha-white-50: rgba(255, 255, 255, 0.50);
@@ -29,6 +34,7 @@
     --alpha-black-50: rgba(0, 0, 0, 0.50);
     --alpha-black-25: rgba(0, 0, 0, 0.25);
     --alpha-black-10: rgba(0, 0, 0, 0.10);
+    --alpha-black-05: rgba(0, 0, 0, 0.05);
 
     /* Derived alphas (from base colors) */
     --alpha-btn-blue-60: rgba(0, 125, 247, 0.6);
@@ -48,11 +54,75 @@
         linear-gradient(to bottom, rgba(0, 0, 20, 0.5) 0%, transparent 50%),
         radial-gradient(70% 70% at 50% 110%, var(--c-ocean) 10%, transparent 60%),
         radial-gradient(40% 30% at 50% 95%, var(--c-caustic) 0%, transparent 50%);
+
+    /* Input colors */
+    --c-input-rim: #c7cfcc;
+
+    /* Input shadows - neumorphic inset, light from above */
+    --shadow-input-inset:
+        inset 0 2px 4px var(--alpha-black-10),
+        inset 0 1px 2px var(--alpha-black-05),
+        inset 0 -2px 3px var(--alpha-white-75),
+        0 1px 2px var(--c-white);
+    --shadow-input-focus:
+        inset 0 2px 4px var(--alpha-black-10),
+        inset 0 1px 2px var(--alpha-black-05),
+        inset 0 -2px 3px var(--alpha-white-75),
+        0 1px 2px var(--c-white),
+        0 0 0 3px var(--alpha-btn-blue-25);
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
 }
 
 body {
     font: 400 1rem/1.5 -apple-system, system-ui, sans-serif;
     color: var(--c-dark);
+}
+
+form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="url"],
+input[type="tel"],
+input[type="number"],
+textarea {
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 8px 16px;
+    border: 2px solid var(--c-input-bg);
+    border-radius: 50px;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            rgba(0,0,0,0.03) 0px,
+            transparent 1px,
+            transparent 2px
+        ),
+        var(--c-input-bg);
+    box-shadow: var(--shadow-input-inset);
+    color: #555;
+    text-shadow:
+        0 -1px 1px rgba(0,0,0,0.2),
+        0 1px 2px var(--c-white);
+    outline: none;
+    transition: background 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+input::placeholder, textarea::placeholder {
+    color: var(--c-placeholder);
+    text-shadow: 0 1px 1px var(--c-white);
+}
+input:focus, textarea:focus {
+    background: var(--c-input-bg-focus);
+    box-shadow: var(--shadow-input-focus);
 }
 
 button {
@@ -64,18 +134,19 @@ button {
     padding: 8px 16px;
     border-radius: 50px;
     border: 1px solid var(--c-btn-blue);
-    border-bottom: 6px solid var(--c-btn-edge);
+    border-bottom: 3px solid var(--c-btn-edge);
     background-color: var(--c-btn-blue);
     background-image: var(--grad-shine), var(--grad-glow);
     box-shadow:
         inset 0 -2px 4px 1px var(--alpha-btn-blue-60),
         inset 0 -4px 4px 1px var(--c-glow-cyan),
-        inset 0 0 2px 1px var(--alpha-white-20);
-    text-shadow: 0 1px 1px var(--c-blue-dark);
+        inset 0 0 2px 1px var(--alpha-white-20),
+        0 2px 1px 0 rgba(0, 125, 247, 0.5);
+    text-shadow: 0 2px 3px var(--c-btn-edge);
     transition:
         border-color 0.12s ease-out,
         border-bottom-width 0.08s ease-out,
-        margin-top 0.08s ease-out,
+        transform 0.08s ease-out,
         background-color 0.12s ease-out,
         background-image 0.15s ease-out,
         box-shadow 0.2s ease-out;
@@ -102,7 +173,8 @@ button::after {
     background: var(--alpha-btn-blue-25);
     filter: blur(8px);
     transform: translateY(10px);
-    transition: transform 0.2s ease-out, filter 0.2s ease-out, background 0.25s ease-out;
+    
+    transition: transform 0.2s ease-out, filter 0.2s ease-out, background 0.25s ease-out, box-shadow 0.2s ease-out;
 }
 
 button:hover {
@@ -119,7 +191,7 @@ button:hover::after { transform: translateY(14px); filter: blur(12px); }
 
 button:active {
     border-bottom-width: 2px;
-    margin-top: 4px;
+    transform: translateY(1px);
     border-color: var(--c-btn-active);
     background-color: var(--c-btn-active);
     background-image: var(--grad-caustic);

@@ -12,11 +12,78 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            background: #fff;
+             background:
+                repeating-radial-gradient(
+                    circle at 17% 32%,
+                    rgba(0,0,0,0.018) 0px,
+                    transparent 1px,
+                    transparent 2px
+                ),
+                repeating-radial-gradient(
+                    circle at 83% 67%,
+                    rgba(0,0,0,0.015) 0px,
+                    transparent 1px,
+                    transparent 3px
+                ),
+                repeating-radial-gradient(
+                    circle at 47% 81%,
+                    rgba(0,0,0,0.012) 0px,
+                    transparent 1px,
+                    transparent 4px
+                ),
+                #f8f8f8;
+        }
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+        .logo-stack {
+            position: relative;
+            width: 272px;
+            height: 92px;
+        }
+        .logo-stack img {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        /* Shadow above - surface curves away from light */
+        .logo-shadow {
+            filter: blur(4px) brightness(0) opacity(0.2);
+            transform: translateY(-4px);
+        }
+        /* Colored bounce light on bottom */
+        .logo-bounce {
+            filter: blur(2px) saturate(1) brightness(1.4);
+            opacity: 0.45;
+            transform: translateY(2px);
+        }
+        /* White highlight where surface faces light */
+        .logo-highlight {
+            filter: blur(2px) brightness(3) saturate(0);
+            opacity: 0.25;
+            transform: translateY(4px);
+        }
+        /* Main logo with internal shadow on top edges */
+        .logo-main {
+            filter: drop-shadow(0 -1px 1px rgba(0,0,0,0.2));
         }
     </style>
 </head>
 <body>
-    <button>Click Me</button>
+    <main>
+        <div class="logo-stack">
+            <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png" alt="" width="272" class="logo-shadow">
+            <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png" alt="" width="272" class="logo-bounce">
+            <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png" alt="" width="272" class="logo-highlight">
+            <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png" alt="Google" width="272" class="logo-main">
+        </div>
+        <form>
+            <input type="text" placeholder="The world is at your fingertips" style="width: 400px;">
+            <button type="submit">Search</button>
+        </form>
+    </main>
 </body>
 </html>
