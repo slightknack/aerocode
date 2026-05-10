@@ -1280,6 +1280,7 @@ document.querySelector('button').onclick = () => {
 
     // Render: derive DOM from state
     function render() {
+        enforceConstraints();
         const maxW = window.innerWidth;
         const mobile = isMobile();
 
@@ -1429,6 +1430,10 @@ document.querySelector('button').onclick = () => {
                     state.heights[p] -= canTake;
                     remaining -= canTake;
                 }
+                // Cap height if donors couldn't provide enough space
+                if (remaining > 0) {
+                    state.heights[panel] = Math.max(MIN_H, state.heights[panel] - remaining);
+                }
             }
         }
         render();
@@ -1491,13 +1496,19 @@ document.querySelector('button').onclick = () => {
                 remaining -= take;
             }
 
-            // Give the freed space to the panel above
+            // Give the freed space to nearest open panel (prefer above, then below)
             const freedSpace = delta - remaining;
+            let recipient = null;
             for (let i = panelIdx - 1; i >= 0; i--) {
-                const p = PANELS[i];
-                if (startState.minimized[p]) continue;
-                newState.heights[p] = startState.heights[p] + freedSpace;
-                break;
+                if (!startState.minimized[PANELS[i]]) { recipient = PANELS[i]; break; }
+            }
+            if (!recipient) {
+                for (let i = panelIdx + 1; i < PANELS.length; i++) {
+                    if (!startState.minimized[PANELS[i]]) { recipient = PANELS[i]; break; }
+                }
+            }
+            if (recipient) {
+                newState.heights[recipient] = startState.heights[recipient] + freedSpace;
             }
         }
 
@@ -1657,9 +1668,11 @@ document.querySelector('button').onclick = () => {
         document.getElementById('new-btn').addEventListener('click', () => {
             if (!confirm('Clear all code and start fresh?')) return;
 
+            suppressChange = true;
             editors.html.setValue('');
             editors.css.setValue('');
             editors.js.setValue('');
+            suppressChange = false;
 
             state.collapsed = false;
             state.fullscreen = null;
@@ -1667,6 +1680,7 @@ document.querySelector('button').onclick = () => {
             state.clipboard = null;
             initializeHeights();
 
+            clearTimeout(urlTimeout);
             history.replaceState(null, '', location.pathname);
 
             render();
@@ -2055,9 +2069,11 @@ document.querySelector('button').onclick = () => {
             const json = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
             const data = JSON.parse(json);
 
+            suppressChange = true;
             if (data.h !== undefined) editors.html.setValue(data.h);
             if (data.c !== undefined) editors.css.setValue(data.c);
             if (data.j !== undefined) editors.js.setValue(data.j);
+            suppressChange = false;
 
             // Apply preview mode flag (backwards compatible with old s/f format)
             if (data.p !== undefined) {
@@ -2245,38 +2261,45 @@ document.querySelector('button').onclick = () => {
 
     // Message listener for console output from iframe
     window.addEventListener('message', (e) => {
-        if (e.data && e.data.source === 'aerocode-console') {
-            // Ignore messages from stale iframe executions
-            if (e.data.gen !== previewGeneration) return;
+        if (!e.data || e.data.source !== 'aerocode-console') return;
+        if (e.source !== dom.preview?.contentWindow) return;
 
-            // Extract line number from error
-            // Stack traces show usercode.js:LINE where LINE is 1-based user code line
-            let line = null;
-            if (e.data.type === 'error' && e.data.message) {
-                const match = e.data.message.match(/usercode\.js:(\d+)/);
-                if (match) {
-                    line = parseInt(match[1], 10);
-                }
-            }
-            // Fallback to window.onerror line (but this is raw doc line, less reliable)
-            if (!line && e.data.line) {
-                line = e.data.line;
-            }
+        // Ignore messages from stale iframe executions
+        if (e.data.gen !== previewGeneration) return;
 
-            consoleState.entries.push({ ...e.data, line });
-            renderConsole();
+        // Validate type against known values
+        const safeType = ['log', 'info', 'warn', 'error'].includes(e.data.type) ? e.data.type : 'log';
 
-            // Mark error line in editor
-            if (e.data.type === 'error' && line && line > 0) {
-                markErrorLine(line);
+        // Extract line number from error
+        // Stack traces show usercode.js:LINE where LINE is 1-based user code line
+        let line = null;
+        if (safeType === 'error' && e.data.message) {
+            const match = e.data.message.match(/usercode\.js:(\d+)/);
+            if (match) {
+                line = parseInt(match[1], 10);
             }
+        }
+        // Fallback to window.onerror line (but this is raw doc line, less reliable)
+        if (!line && e.data.line) {
+            line = e.data.line;
+        }
+
+        consoleState.entries.push({ ...e.data, type: safeType, line });
+        renderConsole();
+
+        // Mark error line in editor
+        if (safeType === 'error' && line && line > 0) {
+            markErrorLine(line);
         }
     });
 
     // Check if CodeMirror loaded
     const hasCodeMirror = typeof CodeMirror !== 'undefined';
 
+    let suppressChange = false;
+
     function onCodeChange() {
+        if (suppressChange) return;
         updatePreview();
         if (state.clipboard !== null) {
             state.clipboard = null;
@@ -2317,12 +2340,13 @@ document.querySelector('button').onclick = () => {
         render();
         renderConsole();
 
+        // Bind change handlers immediately (suppressChange guards during loadFromHash)
+        if (hasCodeMirror) {
+            PANELS.forEach(lang => editors[lang].on('change', onCodeChange));
+        }
+
         loadFromHash().then(() => {
             updatePreview();
-            // CodeMirror change handlers
-            if (hasCodeMirror) {
-                PANELS.forEach(lang => editors[lang].on('change', onCodeChange));
-            }
         });
     }
 
